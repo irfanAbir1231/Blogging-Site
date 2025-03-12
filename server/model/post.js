@@ -1,33 +1,53 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 const PostSchema = mongoose.Schema({
-    title: {
-        type: String,
-        required: true,
-        unique: true
+  title: {
+    type: String,
+    required: true,
+    // Remove unique constraint or make it case-sensitive
+    // unique: true
+  },
+  description: {
+    type: String,
+    required: true,
+  },
+  picture: {
+    type: String,
+    required: false,
+  },
+  username: {
+    type: String,
+    required: true,
+  },
+  categories: {
+    type: String, // Changed from Array to String to match client usage
+    required: false,
+  },
+  createdDate: {
+    type: Date,
+    default: Date.now,
+  },
+  upvotes: [
+    {
+      type: String, // Store usernames of users who upvoted
+      required: true,
     },
-    description: {
-        type: String,
-        required: true
+  ],
+  downvotes: [
+    {
+      type: String, // Store usernames of users who downvoted
+      required: true,
     },
-    picture: {
-        type: String,
-        required: false
-    },
-    username: {
-        type: String,
-        required: true
-    },
-    categories: {
-        type: Array,
-        required: false   
-    },
-    createdDate: {
-        type: Date
-    }
+  ],
+  score: {
+    type: Number,
+    default: 0,
+  },
 });
 
+// Create a compound index for title and username to allow same titles for different users
+PostSchema.index({ title: 1, username: 1 }, { unique: true });
 
-const post = mongoose.model('post', PostSchema);
+const post = mongoose.model("post", PostSchema);
 
 export default post;
