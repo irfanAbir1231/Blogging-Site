@@ -13,6 +13,8 @@ import {
   Skeleton,
   Select,
   MenuItem,
+  Paper,
+  Container as MuiContainer,
 } from "@mui/material";
 import { AddCircle as Add } from "@mui/icons-material";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -21,87 +23,137 @@ import { API } from "../../service/api";
 import { DataContext } from "../../context/DataProvider";
 import { categories } from "../../constants/data";
 
-const Container = styled(Box)(({ theme }) => ({
-  margin: "50px 100px",
-  [theme.breakpoints.down("md")]: {
-    margin: "20px",
-  },
-  position: "relative",
-  paddingTop: "64px", // Add space for the header/navbar
+const Container = styled(MuiContainer)(({ theme }) => ({
+  paddingTop: theme.spacing(10),
+  paddingBottom: theme.spacing(8),
+  minHeight: "100vh",
+  display: "flex",
+  flexDirection: "column",
+  gap: theme.spacing(4),
 }));
 
-const ImageContainer = styled(Box)({
+const FormWrapper = styled(Paper)(({ theme }) => ({
+  padding: theme.spacing(4),
+  borderRadius: theme.spacing(2),
+  boxShadow: theme.shadows[4],
+}));
+
+const ImageContainer = styled(Box)(({ theme }) => ({
   position: "relative",
   width: "100%",
-  height: "50vh",
-  borderRadius: "8px",
+  height: "400px",
+  borderRadius: theme.spacing(2),
   overflow: "hidden",
-  backgroundColor: "#f5f5f5",
-  boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
-  marginBottom: "20px",
-});
+  backgroundColor: theme.palette.mode === "dark" ? "#1e1e1e" : "#f5f5f5",
+  boxShadow: theme.shadows[2],
+  marginBottom: theme.spacing(4),
+}));
 
 const Image = styled("img")({
   width: "100%",
   height: "100%",
   objectFit: "cover",
+  transition: "opacity 0.3s ease",
 });
 
-const StyledFormControl = styled(FormControl)`
-  margin-top: 10px;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  background: #fff;
-  padding: 10px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-`;
+const FormSection = styled(Box)(({ theme }) => ({
+  display: "flex",
+  flexDirection: "column",
+  gap: theme.spacing(3),
+}));
 
-const InputTextField = styled(InputBase)`
-  flex: 1;
-  margin: 0 30px;
-  font-size: 25px;
-  &.error {
-    border-bottom: 2px solid #d32f2f;
-  }
-`;
+const TitleSection = styled(Box)(({ theme }) => ({
+  display: "grid",
+  gridTemplateColumns: "auto 1fr auto",
+  alignItems: "center",
+  gap: theme.spacing(2),
+  padding: theme.spacing(2),
+  backgroundColor: theme.palette.background.paper,
+  borderRadius: theme.spacing(1),
+  border: `1px solid ${theme.palette.divider}`,
+}));
 
-const Textarea = styled(TextareaAutosize)`
-  width: 100%;
-  border: none;
-  margin-top: 20px;
-  font-size: 18px;
-  padding: 20px;
-  border-radius: 8px;
-  background: #fff;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  &:focus-visible {
-    outline: none;
-  }
-  &.error {
-    border: 1px solid #d32f2f;
-  }
-`;
+const CategorySection = styled(Box)(({ theme }) => ({
+  display: "grid",
+  gridTemplateColumns: "auto 1fr",
+  alignItems: "center",
+  gap: theme.spacing(2),
+  padding: theme.spacing(2),
+  backgroundColor: theme.palette.background.paper,
+  borderRadius: theme.spacing(1),
+  border: `1px solid ${theme.palette.divider}`,
+}));
 
-const UploadButton = styled(Box)`
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px;
-  border-radius: 4px;
-  transition: all 0.3s ease;
-  &:hover {
-    background: #f0f0f0;
-  }
-`;
+const StyledInputBase = styled(InputBase)(({ theme }) => ({
+  fontSize: "1.25rem",
+  width: "100%",
+  "& input": {
+    padding: theme.spacing(1),
+  },
+  "& input::placeholder": {
+    opacity: 0.7,
+  },
+  "&.error": {
+    color: theme.palette.error.main,
+  },
+}));
 
-const StyledSelect = styled(Select)`
-  flex: 1;
-  margin: 0 30px;
-  font-size: 25px;
-`;
+const StyledSelect = styled(Select)(({ theme }) => ({
+  width: "100%",
+  "& .MuiSelect-select": {
+    padding: theme.spacing(1),
+  },
+}));
+
+const StyledTextArea = styled(TextareaAutosize)(({ theme }) => ({
+  width: "100%",
+  minHeight: "300px",
+  padding: theme.spacing(2),
+  border: `1px solid ${theme.palette.divider}`,
+  borderRadius: theme.spacing(1),
+  backgroundColor: theme.palette.background.paper,
+  fontSize: "1rem",
+  fontFamily: theme.typography.fontFamily,
+  resize: "vertical",
+  "&:focus": {
+    outline: "none",
+    borderColor: theme.palette.primary.main,
+    boxShadow: `0 0 0 2px ${theme.palette.primary.main}25`,
+  },
+  "&::placeholder": {
+    opacity: 0.7,
+  },
+  "&.error": {
+    borderColor: theme.palette.error.main,
+  },
+}));
+
+const UploadButton = styled(Box)(({ theme }) => ({
+  display: "flex",
+  alignItems: "center",
+  gap: theme.spacing(1),
+  padding: theme.spacing(1),
+  cursor: "pointer",
+  borderRadius: theme.spacing(1),
+  transition: "all 0.2s ease",
+  "&:hover": {
+    backgroundColor: theme.palette.action.hover,
+  },
+}));
+
+const PublishButton = styled(Button)(({ theme }) => ({
+  padding: `${theme.spacing(1)} ${theme.spacing(4)}`,
+  fontSize: "1rem",
+  textTransform: "none",
+  minWidth: "120px",
+}));
+
+const ErrorText = styled(Typography)(({ theme }) => ({
+  color: theme.palette.error.main,
+  fontSize: "0.875rem",
+  marginTop: theme.spacing(0.5),
+  marginLeft: theme.spacing(2),
+}));
 
 const initialPost = {
   title: "",
@@ -116,6 +168,7 @@ const CreatePost = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { account } = useContext(DataContext);
+  const mountedRef = useRef(true); // Add mounted ref
 
   const [post, setPost] = useState(initialPost);
   const [file, setFile] = useState("");
@@ -126,6 +179,31 @@ const CreatePost = () => {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
   const [imageSrc, setImageSrc] = useState("");
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+
+  // Safe setState functions
+  const safeSetState =
+    (setter) =>
+    (...args) => {
+      if (mountedRef.current) {
+        setter(...args);
+      }
+    };
+
+  const safeSetPost = safeSetState(setPost);
+  const safeSetErrors = safeSetState(setErrors);
+  const safeSetIsSubmitting = safeSetState(setIsSubmitting);
+  const safeSetSubmitError = safeSetState(setSubmitError);
+  const safeSetIsUploading = safeSetState(setIsUploading);
+  const safeSetImageLoaded = safeSetState(setImageLoaded);
+  const safeSetImageError = safeSetState(setImageError);
+  const safeSetImageSrc = safeSetState(setImageSrc);
 
   const fallbackUrl =
     "https://images.unsplash.com/photo-1543128639-4cb7e6eeef1b?ixid=MnwxMjA3fDB8MHxzZWFyY2h8Mnx8bGFwdG9wJTIwc2V0dXB8ZW58MHx8MHx8&ixlib=rb-1.2.1&w=1000&q=80";
@@ -150,7 +228,7 @@ const CreatePost = () => {
     const getImage = async () => {
       if (file) {
         try {
-          setIsUploading(true);
+          safeSetIsUploading(true);
           const data = new FormData();
           data.append("file", file);
 
@@ -187,14 +265,13 @@ const CreatePost = () => {
 
             // Wait a moment for the file to be available before setting the URL
             setTimeout(async () => {
-              // Check if component is still mounted
-              if (mounted) {
+              if (mountedRef.current) {
                 // First, attempt to verify the image is accessible
                 const isAccessible = await testImageWithFetch(imageUrl);
                 console.log("Image accessibility test result:", isAccessible);
 
-                setPost((prev) => ({ ...prev, picture: imageUrl }));
-                setErrors((prev) => ({ ...prev, picture: "" }));
+                safeSetPost((prev) => ({ ...prev, picture: imageUrl }));
+                safeSetErrors((prev) => ({ ...prev, picture: "" }));
               }
             }, 1000); // Wait 1 second for server to process
           } else {
@@ -202,27 +279,22 @@ const CreatePost = () => {
           }
         } catch (error) {
           console.error("Image upload error:", error);
-          if (mounted) {
-            setErrors((prev) => ({
+          if (mountedRef.current) {
+            safeSetErrors((prev) => ({
               ...prev,
               picture:
                 error.message || "Failed to upload image. Please try again.",
             }));
           }
         } finally {
-          if (mounted) {
-            setIsUploading(false);
+          if (mountedRef.current) {
+            safeSetIsUploading(false);
           }
         }
       }
     };
 
-    let mounted = true;
     getImage();
-
-    return () => {
-      mounted = false;
-    };
   }, [file]);
 
   // Fix the image source useEffect to handle URL correctly
@@ -238,11 +310,11 @@ const CreatePost = () => {
       }
 
       // Set loading state and clear error state
-      setImageLoaded(false);
-      setImageError(false);
+      safeSetImageLoaded(false);
+      safeSetImageError(false);
 
       // Start with the fallback image
-      setImageSrc(fallbackUrl);
+      safeSetImageSrc(fallbackUrl);
 
       // Add a longer delay before loading the image to give the server time to process it
       const timer = setTimeout(async () => {
@@ -250,16 +322,16 @@ const CreatePost = () => {
         const isAccessible = await testImageWithFetch(baseUrl);
         if (isAccessible) {
           console.log("Image is now accessible, setting as source");
-          setImageSrc(baseUrl);
+          safeSetImageSrc(baseUrl);
         } else {
           console.log("Image still not accessible, using fallback");
-          setImageError(true);
+          safeSetImageError(true);
         }
       }, 2000); // Try after 2 seconds
 
       return () => clearTimeout(timer);
     } else {
-      setImageSrc(fallbackUrl);
+      safeSetImageSrc(fallbackUrl);
     }
   }, [post.picture]);
 
@@ -276,18 +348,18 @@ const CreatePost = () => {
         });
 
         if (!response.ok) {
-          setImageError(true);
-          setImageSrc(fallbackUrl);
+          safeSetImageError(true);
+          safeSetImageSrc(fallbackUrl);
         } else {
           // Try loading the image again with a fresh URL
           const freshUrl = `${imageSrc}?retry=${Date.now()}`;
-          setImageSrc(freshUrl);
+          safeSetImageSrc(freshUrl);
         }
       })
       .catch((error) => {
         console.error("Image fetch error:", error);
-        setImageError(true);
-        setImageSrc(fallbackUrl);
+        safeSetImageError(true);
+        safeSetImageSrc(fallbackUrl);
       });
   };
 
@@ -297,7 +369,7 @@ const CreatePost = () => {
     // Get category from URL and update post
     const category = location.search?.split("=")[1] || "All";
     if (mounted) {
-      setPost((prev) => ({
+      safeSetPost((prev) => ({
         ...prev,
         categories: category,
         username: account.username,
@@ -321,11 +393,7 @@ const CreatePost = () => {
       newErrors.description = "Description is required";
     }
 
-    if (!post.picture) {
-      newErrors.picture = "Please upload an image";
-    }
-
-    setErrors(newErrors);
+    safeSetErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
@@ -335,220 +403,266 @@ const CreatePost = () => {
     }
 
     try {
-      setIsSubmitting(true);
-      setSubmitError("");
+      safeSetIsSubmitting(true);
+      safeSetSubmitError("");
 
-      // Ensure all required fields are present and properly formatted
+      // Check if user is logged in
+      if (!account?.username) {
+        safeSetSubmitError("Please log in to create a post.");
+        navigate("/login");
+        return;
+      }
+
       const postData = {
         ...post,
-        picture:
-          typeof post.picture === "object" ? post.picture.data : post.picture,
+        picture: post.picture || fallbackUrl,
         createdDate: new Date(),
       };
 
       console.log("Sending post data:", postData);
 
-      const response = await API.createPost(postData);
+      try {
+        const response = await API.createPost(postData);
+        console.log("Create post API response:", response);
 
-      if (response.isSuccess) {
-        navigate("/");
-      } else {
-        // Check if it's a duplicate title error
-        if (response.field === "title") {
-          setErrors((prev) => ({
-            ...prev,
-            title:
-              response.msg ||
-              "This title is already in use. Please choose a different title.",
-          }));
+        if (response?.isSuccess) {
+          if (mountedRef.current) {
+            navigate("/");
+          }
         } else {
-          setSubmitError(
-            response.msg || "Failed to create post. Please try again."
+          // Handle the error response
+          console.log("API error response:", response);
+          safeSetSubmitError(
+            response?.msg || "Failed to create post. Please try again."
           );
         }
+      } catch (apiError) {
+        // Log the complete error object
+        console.error("API Error Details:", {
+          status: apiError.response?.status,
+          statusText: apiError.response?.statusText,
+          data: apiError.response?.data,
+          headers: apiError.response?.headers,
+          error: apiError,
+        });
+
+        // Handle 400 Bad Request specifically
+        if (apiError.response?.status === 400) {
+          const errorData = apiError.response.data;
+          console.log("Bad Request Error Data:", errorData);
+
+          if (errorData.field === "title") {
+            safeSetErrors((prev) => ({
+              ...prev,
+              title:
+                errorData.msg ||
+                "This title is already in use. Please choose a different title.",
+            }));
+            safeSetSubmitError(
+              errorData.msg ||
+                "Warning: A post with this title already exists. Please choose a different title."
+            );
+          } else {
+            safeSetSubmitError(
+              errorData.msg || "Invalid request. Please check your input."
+            );
+          }
+          return;
+        }
+
+        throw apiError; // Re-throw for other error handling
       }
     } catch (error) {
       console.error("Create post error:", error);
 
-      // Check if the error response contains field-specific error
-      if (error.response?.data?.field) {
-        const { field, msg } = error.response.data;
-        setErrors((prev) => ({
-          ...prev,
-          [field]: msg,
-        }));
+      // Handle authentication errors
+      if (error.response?.status === 403 || error.response?.status === 401) {
+        console.log("Authentication error:", error.response);
+        safeSetSubmitError("Your session has expired. Please log in again.");
+        sessionStorage.clear();
+        navigate("/login");
+        return;
+      }
+
+      if (error.response?.data) {
+        console.log("Error response data:", error.response.data);
+        const errorData = error.response.data;
+
+        // Check for duplicate title error
+        if (
+          errorData.field === "title" ||
+          (errorData.error && errorData.error.code === 11000) ||
+          errorData.msg?.includes("title already exists")
+        ) {
+          safeSetErrors((prev) => ({
+            ...prev,
+            title:
+              errorData.msg ||
+              "This title is already in use. Please choose a different title.",
+          }));
+          safeSetSubmitError(
+            errorData.msg ||
+              "Warning: A post with this title already exists. Please choose a different title."
+          );
+        } else {
+          safeSetSubmitError(
+            errorData.msg || "Failed to create post. Please try again."
+          );
+        }
       } else {
-        setSubmitError(
-          error.response?.data?.msg ||
-            error.message ||
-            "Failed to create post. Please try again."
-        );
+        safeSetSubmitError("Failed to create post. Please try again.");
       }
     } finally {
-      setIsSubmitting(false);
+      safeSetIsSubmitting(false);
     }
   };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setPost((prev) => ({ ...prev, [name]: value }));
+    safeSetPost((prev) => ({ ...prev, [name]: value }));
     // Clear error when user starts typing
     if (errors[name]) {
-      setErrors((prev) => ({ ...prev, [name]: "" }));
+      safeSetErrors((prev) => ({ ...prev, [name]: "" }));
     }
   };
 
   return (
-    <Container>
-      <ImageContainer>
-        {!imageLoaded && !imageError && (
-          <Skeleton variant="rectangular" width="100%" height="100%" />
-        )}
-        <Image
-          ref={imgRef}
-          src={imageSrc}
-          alt="post"
-          onLoad={() => {
-            console.log("Image loaded successfully:", imageSrc);
-            setImageLoaded(true);
-          }}
-          onError={handleImageError}
-          style={{ opacity: imageLoaded ? 1 : 0 }}
-          crossOrigin="anonymous"
-        />
-      </ImageContainer>
-
-      <StyledFormControl>
-        <UploadButton component="label" htmlFor="fileInput">
-          <Add fontSize="large" color="action" />
-          <Typography color="textSecondary">
-            {isUploading ? "Uploading..." : "Upload Image"}
-          </Typography>
-        </UploadButton>
-        <input
-          type="file"
-          id="fileInput"
-          style={{ display: "none" }}
-          onChange={(e) => {
-            const file = e.target.files[0];
-            if (file) {
-              // Debug log
-              console.log("Selected file type:", file.type);
-              console.log("Selected file name:", file.name);
-
-              // Check file type
-              const validTypes = [
-                "image/png",
-                "image/jpg",
-                "image/jpeg",
-                "image/gif",
-                "image/webp",
-              ];
-
-              // If file type is not detected, try to detect from extension
-              const fileExtension = file.name.split(".").pop().toLowerCase();
-              const extensionToMimeType = {
-                png: "image/png",
-                jpg: "image/jpeg",
-                jpeg: "image/jpeg",
-                gif: "image/gif",
-                webp: "image/webp",
-              };
-
-              const detectedType =
-                file.type || extensionToMimeType[fileExtension];
-
-              if (!detectedType || !validTypes.includes(detectedType)) {
-                setErrors((prev) => ({
-                  ...prev,
-                  picture: `Invalid file type: ${file.name}. Only PNG, JPG, JPEG, GIF, and WEBP files are allowed.`,
-                }));
-                return;
-              }
-
-              // Check file size (5MB limit)
-              if (file.size > 5 * 1024 * 1024) {
-                setErrors((prev) => ({
-                  ...prev,
-                  picture: "File size too large. Maximum size is 5MB.",
-                }));
-                return;
-              }
-
-              setFile(file);
-              setErrors((prev) => ({ ...prev, picture: "" }));
-            }
-          }}
-          accept="image/png,image/jpg,image/jpeg,image/gif,image/webp"
-        />
-        <InputTextField
-          onChange={handleChange}
-          name="title"
-          placeholder="Title"
-          className={errors.title ? "error" : ""}
-          value={post.title}
-        />
-        <Button
-          onClick={savePost}
-          variant="contained"
-          color="primary"
-          disabled={isSubmitting || isUploading}
-        >
-          {isSubmitting ? (
-            <CircularProgress size={24} color="inherit" />
-          ) : (
-            "Publish"
+    <Container maxWidth="lg">
+      <FormWrapper elevation={0}>
+        <ImageContainer>
+          {!imageLoaded && !imageError && (
+            <Skeleton variant="rectangular" width="100%" height="100%" />
           )}
-        </Button>
-      </StyledFormControl>
+          <Image
+            ref={imgRef}
+            src={imageSrc}
+            alt="post"
+            onLoad={() => {
+              console.log("Image loaded successfully:", imageSrc);
+              safeSetImageLoaded(true);
+            }}
+            onError={handleImageError}
+            style={{ opacity: imageLoaded ? 1 : 0 }}
+            crossOrigin="anonymous"
+          />
+        </ImageContainer>
 
-      {errors.title && (
-        <Typography color="error" variant="caption" sx={{ ml: 2 }}>
-          {errors.title}
-        </Typography>
-      )}
+        <FormSection>
+          <TitleSection>
+            <UploadButton component="label" htmlFor="fileInput">
+              <Add fontSize="large" color="action" />
+              <Typography color="textSecondary">
+                {isUploading ? "Uploading..." : "Upload Image"}
+              </Typography>
+            </UploadButton>
+            <input
+              type="file"
+              id="fileInput"
+              style={{ display: "none" }}
+              onChange={(e) => {
+                const file = e.target.files[0];
+                if (file) {
+                  const validTypes = [
+                    "image/png",
+                    "image/jpg",
+                    "image/jpeg",
+                    "image/gif",
+                    "image/webp",
+                  ];
+                  const fileExtension = file.name
+                    .split(".")
+                    .pop()
+                    .toLowerCase();
+                  const extensionToMimeType = {
+                    png: "image/png",
+                    jpg: "image/jpeg",
+                    jpeg: "image/jpeg",
+                    gif: "image/gif",
+                    webp: "image/webp",
+                  };
+                  const detectedType =
+                    file.type || extensionToMimeType[fileExtension];
 
-      <StyledFormControl>
-        <label htmlFor="category">Category:</label>
-        <StyledSelect
-          value={post.categories}
-          onChange={(e) => setPost({ ...post, categories: e.target.value })}
-          id="category"
-        >
-          {categories.map((category) => (
-            <MenuItem key={category.id} value={category.type}>
-              {category.type}
-            </MenuItem>
-          ))}
-        </StyledSelect>
-      </StyledFormControl>
+                  if (!detectedType || !validTypes.includes(detectedType)) {
+                    safeSetErrors((prev) => ({
+                      ...prev,
+                      picture: `Invalid file type. Only PNG, JPG, JPEG, GIF, and WEBP files are allowed.`,
+                    }));
+                    return;
+                  }
+                  if (file.size > 5 * 1024 * 1024) {
+                    safeSetErrors((prev) => ({
+                      ...prev,
+                      picture: "File size too large. Maximum size is 5MB.",
+                    }));
+                    return;
+                  }
+                  setFile(file);
+                  safeSetErrors((prev) => ({ ...prev, picture: "" }));
+                }
+              }}
+              accept="image/png,image/jpg,image/jpeg,image/gif,image/webp"
+            />
+            <StyledInputBase
+              placeholder="Title"
+              name="title"
+              value={post.title}
+              onChange={handleChange}
+              className={errors.title ? "error" : ""}
+              fullWidth
+            />
+            <PublishButton
+              variant="contained"
+              color="primary"
+              onClick={savePost}
+              disabled={isSubmitting || isUploading}
+            >
+              {isSubmitting ? (
+                <CircularProgress size={24} color="inherit" />
+              ) : (
+                "Publish"
+              )}
+            </PublishButton>
+          </TitleSection>
 
-      <Textarea
-        minRows={5}
-        placeholder="Tell your story..."
-        name="description"
-        onChange={handleChange}
-        className={errors.description ? "error" : ""}
-        value={post.description}
-      />
+          {errors.title && <ErrorText>{errors.title}</ErrorText>}
 
-      {errors.description && (
-        <Typography color="error" variant="caption" sx={{ ml: 2 }}>
-          {errors.description}
-        </Typography>
-      )}
+          <CategorySection>
+            <Typography variant="subtitle1" color="textSecondary">
+              Category:
+            </Typography>
+            <StyledSelect
+              value={post.categories}
+              onChange={(e) =>
+                safeSetPost({ ...post, categories: e.target.value })
+              }
+            >
+              {categories.map((category) => (
+                <MenuItem key={category.id} value={category.type}>
+                  {category.type}
+                </MenuItem>
+              ))}
+            </StyledSelect>
+          </CategorySection>
 
-      {errors.picture && (
-        <Typography color="error" variant="caption" sx={{ ml: 2 }}>
-          {errors.picture}
-        </Typography>
-      )}
+          <StyledTextArea
+            placeholder="Tell your story..."
+            name="description"
+            value={post.description}
+            onChange={handleChange}
+            className={errors.description ? "error" : ""}
+          />
 
-      {submitError && (
-        <Alert severity="error" sx={{ mt: 2 }}>
-          {submitError}
-        </Alert>
-      )}
+          {errors.description && <ErrorText>{errors.description}</ErrorText>}
+          {errors.picture && <ErrorText>{errors.picture}</ErrorText>}
+
+          {submitError && (
+            <Alert severity="error" sx={{ mt: 2 }}>
+              {submitError}
+            </Alert>
+          )}
+        </FormSection>
+      </FormWrapper>
     </Container>
   );
 };

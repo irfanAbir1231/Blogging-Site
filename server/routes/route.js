@@ -9,6 +9,7 @@ import {
   getPost,
   getAllPosts,
   votePost,
+  searchPosts,
 } from "../controller/post-controller.js";
 import {
   uploadImage,
@@ -20,6 +21,7 @@ import {
   getComments,
   deleteComment,
   voteComment,
+  updateComment,
 } from "../controller/comment-controller.js";
 import {
   loginUser,
@@ -47,6 +49,7 @@ router.delete("/delete/:id", authenticateToken, deletePost);
 
 router.get("/post/:id", authenticateToken, getPost);
 router.get("/posts", authenticateToken, getAllPosts);
+router.get("/posts/search", authenticateToken, searchPosts);
 
 router.post("/file/upload", upload.single("file"), uploadImage);
 router.get("/file/:filename", getImage);
@@ -70,6 +73,7 @@ router.get("/test-image", (req, res) => {
 router.post("/comment/new", authenticateToken, newComment);
 router.get("/comments/:id", authenticateToken, getComments);
 router.delete("/comment/delete/:id", authenticateToken, deleteComment);
+router.put("/comment/update/:id", authenticateToken, updateComment);
 
 router.post("/post/vote/:id", authenticateToken, votePost);
 router.post("/comment/vote/:id", authenticateToken, voteComment);

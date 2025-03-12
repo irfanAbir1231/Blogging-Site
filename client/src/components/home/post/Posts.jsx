@@ -1,17 +1,19 @@
-import { Grid, Box, Typography, CircularProgress } from "@mui/material";
+import { Grid, Box, Typography } from "@mui/material";
 import { useEffect, useState, useCallback, useRef } from "react";
 import { API } from "../../../service/api";
 import AnimatedPostCard from "./AnimatedPostCard";
+import PostCardSkeleton from "./PostCardSkeleton";
 import { useInView } from "react-intersection-observer";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 
 const POSTS_PER_PAGE = 9;
+const INITIAL_SKELETON_COUNT = 6;
 
 const Posts = () => {
   const location = useLocation();
-  const navigate = useNavigate();
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
   const [error, setError] = useState(null);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
@@ -30,6 +32,7 @@ const Posts = () => {
     const category = params.get("category") || "";
     if (selectedCategory !== category) {
       setSelectedCategory(category);
+      setInitialLoading(true); // Reset loading state when category changes
     }
   }, [location.search]);
 
@@ -41,6 +44,9 @@ const Posts = () => {
         loadingRef.current = true;
         setLoading(true);
         setError(null);
+
+        // Add artificial delay for smoother loading experience
+        await new Promise((resolve) => setTimeout(resolve, 1000));
 
         // Only include category in the query if it's not empty
         const queryParams = {
@@ -85,6 +91,7 @@ const Posts = () => {
       } finally {
         if (mountedRef.current) {
           setLoading(false);
+          setInitialLoading(false);
           loadingRef.current = false;
         }
       }
@@ -92,7 +99,7 @@ const Posts = () => {
     [selectedCategory]
   );
 
-  // Reset page when category changes
+  // Initial fetch
   useEffect(() => {
     setPage(1);
     setPosts([]);
@@ -119,53 +126,66 @@ const Posts = () => {
     };
   }, []);
 
+  // Render loading skeletons
+  const renderSkeletons = (count) => (
+    <Grid container spacing={3}>
+      {Array.from({ length: count }).map((_, index) => (
+        <Grid item xs={12} sm={6} key={`skeleton-${index}`}>
+          <PostCardSkeleton />
+        </Grid>
+      ))}
+    </Grid>
+  );
+
+  if (error) {
+    return (
+      <Box sx={{ textAlign: "center", py: 4 }}>
+        <Typography color="error" variant="h6">
+          {error}
+        </Typography>
+      </Box>
+    );
+  }
+
   return (
     <Box>
-      {error ? (
-        <Box sx={{ textAlign: "center", py: 4 }}>
-          <Typography color="error" variant="h6">
-            {error}
-          </Typography>
-        </Box>
-      ) : !posts.length && !loading ? (
-        <Box sx={{ textAlign: "center", py: 4 }}>
-          <Typography variant="h6" color="text.secondary">
-            No posts available {selectedCategory && `in ${selectedCategory}`}
-          </Typography>
-        </Box>
+      {selectedCategory && (
+        <Typography variant="h6" sx={{ mb: 3 }}>
+          Showing posts in {selectedCategory}
+        </Typography>
+      )}
+
+      {initialLoading ? (
+        // Show skeleton loading for initial load
+        renderSkeletons(4)
       ) : (
         <>
-          {selectedCategory && (
-            <Typography variant="h6" sx={{ mb: 3 }}>
-              Showing posts in {selectedCategory}
-            </Typography>
-          )}
           <Grid container spacing={3}>
             {posts.map((post) => (
               <Grid
                 item
                 xs={12}
                 sm={6}
-                md={4}
                 key={`${post._id}-${post.createdDate}`}
+                sx={{ minHeight: 600 }}
               >
                 <AnimatedPostCard post={post} />
               </Grid>
             ))}
           </Grid>
 
-          <Box
-            ref={ref}
-            sx={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              py: 4,
-              visibility: hasMore ? "visible" : "hidden",
-            }}
-          >
-            {loading && <CircularProgress />}
-          </Box>
+          {/* Loading indicator for infinite scroll */}
+          {hasMore && (
+            <Box
+              ref={ref}
+              sx={{
+                py: 4,
+                width: "100%",
+              }}
+            >
+              {loading && renderSkeletons(2)}
+            </Box>
+          )}
         </>
       )}
     </Box>

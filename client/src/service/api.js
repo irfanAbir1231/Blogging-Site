@@ -160,11 +160,30 @@ const ProcessError = async (error) => {
       sessionStorage.clear();
     } else {
       console.log("ERROR IN RESPONSE: ", error.toJSON());
+      console.log("Error response data:", error.response.data);
+
+      // Check for MongoDB duplicate key error
+      if (
+        error.response.data?.code === 11000 ||
+        (error.response.data?.message &&
+          error.response.data.message.includes("E11000"))
+      ) {
+        return {
+          isError: true,
+          msg: "This title is already in use. Please choose a different title.",
+          code: 11000,
+          field: "title",
+        };
+      }
+
       return {
         isError: true,
         msg:
-          error.response.data?.msg || API_NOTIFICATION_MESSAGES.responseFailure,
+          error.response.data?.message ||
+          error.response.data?.msg ||
+          API_NOTIFICATION_MESSAGES.responseFailure,
         code: error.response.status,
+        field: error.response.data?.field,
       };
     }
   } else if (error.request) {
@@ -203,7 +222,7 @@ for (const [key, value] of Object.entries(SERVICE_URLS)) {
         const requestConfig = {
           method: value.method,
           url: value.url,
-          data: body,
+          data: value.query ? { ...body } : body,
           responseType: value.responseType,
           headers: {
             authorization: getAccessToken(),
@@ -211,13 +230,28 @@ for (const [key, value] of Object.entries(SERVICE_URLS)) {
           TYPE: getType(value, body),
         };
 
+        // For PUT and DELETE requests with query parameter
+        if (
+          (value.method === "put" || value.method === "delete") &&
+          value.query &&
+          body.id
+        ) {
+          const baseUrl = requestConfig.url.endsWith("/")
+            ? requestConfig.url.slice(0, -1)
+            : requestConfig.url;
+          requestConfig.url = `${baseUrl}/${body.id}`;
+          // Remove id from the request body
+          const { id, ...dataWithoutId } = requestConfig.data;
+          requestConfig.data = dataWithoutId;
+        }
+
         // Handle file uploads
         if (body instanceof FormData) {
           requestConfig.headers["Content-Type"] = "multipart/form-data";
           delete requestConfig.headers["content-type"];
         }
 
-        if (showUploadProgress) {
+        if (showUploadProgress && typeof showUploadProgress === "function") {
           requestConfig.onUploadProgress = function (progressEvent) {
             let percentCompleted = Math.round(
               (progressEvent.loaded * 100) / progressEvent.total
@@ -226,7 +260,10 @@ for (const [key, value] of Object.entries(SERVICE_URLS)) {
           };
         }
 
-        if (showDownloadProgress) {
+        if (
+          showDownloadProgress &&
+          typeof showDownloadProgress === "function"
+        ) {
           requestConfig.onDownloadProgress = function (progressEvent) {
             let percentCompleted = Math.round(
               (progressEvent.loaded * 100) / progressEvent.total

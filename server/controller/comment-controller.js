@@ -3,21 +3,49 @@ import Comment from "../model/comment.js";
 export const newComment = async (request, response) => {
   try {
     const comment = await new Comment(request.body);
-    comment.save();
+    await comment.save();
 
-    response.status(200).json("Comment saved successfully");
+    response.status(200).json({
+      msg: "Comment saved successfully",
+      isSuccess: true,
+      comment,
+    });
   } catch (error) {
-    response.status(500).json(error);
+    response.status(500).json({
+      msg: error.message,
+      isSuccess: false,
+    });
   }
 };
 
 export const getComments = async (request, response) => {
   try {
-    const comments = await Comment.find({ postId: request.params.id });
+    const comments = await Comment.find({
+      postId: request.params.id,
+      parentId: null, // Get only top-level comments
+    }).sort({ date: -1 }); // Sort by newest first
 
-    response.status(200).json(comments);
+    // Get all replies
+    const replies = await Comment.find({
+      postId: request.params.id,
+      parentId: { $ne: null },
+    }).sort({ date: -1 });
+
+    // Create a map of parent comments to their replies
+    const commentTree = comments.map((comment) => {
+      const commentObj = comment.toObject();
+      commentObj.replies = replies.filter(
+        (reply) => reply.parentId.toString() === comment._id.toString()
+      );
+      return commentObj;
+    });
+
+    response.status(200).json(commentTree);
   } catch (error) {
-    response.status(500).json(error);
+    response.status(500).json({
+      msg: error.message,
+      isSuccess: false,
+    });
   }
 };
 
@@ -122,6 +150,45 @@ export const voteComment = async (request, response) => {
         message: error.message,
         code: error.code,
       },
+    });
+  }
+};
+
+export const updateComment = async (request, response) => {
+  try {
+    if (!request.params.id) {
+      return response.status(400).json({
+        msg: "Comment ID is required",
+        isSuccess: false,
+      });
+    }
+
+    const comment = await Comment.findById(request.params.id);
+
+    if (!comment) {
+      return response.status(404).json({
+        msg: "Comment not found",
+        isSuccess: false,
+      });
+    }
+
+    // Update only the comments field
+    comment.comments = request.body.comments;
+
+    // Save the updated comment
+    await comment.save();
+
+    return response.status(200).json({
+      msg: "Comment updated successfully",
+      isSuccess: true,
+      comment,
+    });
+  } catch (error) {
+    console.error("Update comment error:", error);
+    return response.status(500).json({
+      msg: "Error updating comment: " + error.message,
+      isSuccess: false,
+      error: error.message,
     });
   }
 };

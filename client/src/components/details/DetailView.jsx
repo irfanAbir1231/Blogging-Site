@@ -114,37 +114,38 @@ const Image = styled("img")({
   },
 });
 
-const EditIcon = styled(Edit)(({ theme }) => ({
-  margin: "5px",
-  padding: "8px",
-  border: `1px solid ${theme.palette.primary.main}`,
-  borderRadius: "12px",
-  cursor: "pointer",
-  transition: "all 0.3s ease",
-  color: theme.palette.primary.main,
-  backgroundColor: theme.palette.background.paper,
-  "&:hover": {
-    backgroundColor: theme.palette.primary.main,
-    color: theme.palette.common.white,
-    transform: "translateY(-2px)",
-    boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-  },
+const ActionButtons = styled(Box)(({ theme }) => ({
+  display: "flex",
+  gap: theme.spacing(2),
+  position: "absolute",
+  top: theme.spacing(2),
+  right: theme.spacing(2),
+  zIndex: 1,
 }));
 
-const DeleteIcon = styled(Delete)(({ theme }) => ({
-  margin: "5px",
-  padding: "8px",
-  border: `1px solid ${theme.palette.error.main}`,
+const ActionButton = styled(IconButton)(({ theme, variant = "primary" }) => ({
+  width: "48px",
+  height: "48px",
   borderRadius: "12px",
-  cursor: "pointer",
-  transition: "all 0.3s ease",
-  color: theme.palette.error.main,
   backgroundColor: theme.palette.background.paper,
+  border: `1px solid ${theme.palette[variant].main}`,
+  color: theme.palette[variant].main,
+  transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
   "&:hover": {
-    backgroundColor: theme.palette.error.main,
+    backgroundColor: theme.palette[variant].main,
     color: theme.palette.common.white,
     transform: "translateY(-2px)",
-    boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+    boxShadow: `0 4px 12px ${theme.palette[variant].main}40`,
+  },
+  "&:active": {
+    transform: "translateY(0)",
+  },
+  "& svg": {
+    fontSize: "24px",
+    transition: "transform 0.2s ease",
+  },
+  "&:hover svg": {
+    transform: "scale(1.1)",
   },
 }));
 
@@ -261,6 +262,7 @@ const DetailView = () => {
     "https://images.unsplash.com/photo-1543128639-4cb7e6eeef1b?ixid=MnwxMjA3fDB8MHxzZWFyY2h8Mnx8bGFwdG9wJTIwc2V0dXB8ZW58MHx8MHx8&ixlib=rb-1.2.1&w=1000&q=80";
 
   const [post, setPost] = useState({});
+  const [loading, setLoading] = useState(true);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
   const [imageSrc, setImageSrc] = useState("");
@@ -273,6 +275,7 @@ const DetailView = () => {
 
   useEffect(() => {
     const fetchData = async () => {
+      setLoading(true);
       try {
         let response = await API.getPostById(id);
         if (response.isSuccess) {
@@ -294,6 +297,8 @@ const DetailView = () => {
         setImageError(true);
         setImageSrc(fallbackUrl);
         setIsUsingFallback(true);
+      } finally {
+        setLoading(false);
       }
     };
     fetchData();
@@ -404,122 +409,176 @@ const DetailView = () => {
   const hasDownvoted = post.downvotes?.includes(account.username);
   const score = post.score || 0;
 
+  const isAuthor = account.username === post.username;
+
   return (
     <Fade in={true} timeout={800}>
       <Container>
-        <ImageContainer>
-          {!imageLoaded && !imageError && (
+        <ScrollTop />
+        {loading ? (
+          <Box sx={{ width: "100%" }}>
             <Skeleton
               variant="rectangular"
               width="100%"
-              height="100%"
+              height="60vh"
+              sx={{ borderRadius: "16px", mb: 4 }}
               animation="wave"
             />
-          )}
-          <Image
-            src={imageSrc}
-            alt={post.title || "Post"}
-            onLoad={handleImageLoad}
-            onError={handleImageError}
-            style={{ opacity: imageLoaded ? 1 : 0 }}
-          />
-        </ImageContainer>
+            <Skeleton
+              variant="text"
+              width="70%"
+              height={60}
+              sx={{ mx: "auto", mb: 2 }}
+              animation="wave"
+            />
+            <Skeleton
+              variant="rectangular"
+              width="100%"
+              height={200}
+              sx={{ borderRadius: "12px" }}
+              animation="wave"
+            />
+          </Box>
+        ) : (
+          <>
+            <ImageContainer>
+              <ActionButtons>
+                {isAuthor && (
+                  <>
+                    <Tooltip
+                      title="Edit post"
+                      placement="bottom"
+                      TransitionComponent={Fade}
+                      arrow
+                    >
+                      <ActionButton
+                        variant="primary"
+                        onClick={() => navigate(`/update/${post._id}`)}
+                        aria-label="edit post"
+                      >
+                        <Edit />
+                      </ActionButton>
+                    </Tooltip>
+                    <Tooltip
+                      title="Delete post"
+                      placement="bottom"
+                      TransitionComponent={Fade}
+                      arrow
+                    >
+                      <ActionButton
+                        variant="error"
+                        onClick={() => deleteBlog()}
+                        aria-label="delete post"
+                      >
+                        <Delete />
+                      </ActionButton>
+                    </Tooltip>
+                  </>
+                )}
+              </ActionButtons>
+              {!imageLoaded && !imageError && (
+                <Skeleton
+                  variant="rectangular"
+                  width="100%"
+                  height="100%"
+                  animation="wave"
+                />
+              )}
+              <Image
+                src={imageSrc}
+                alt={post.title || "Post"}
+                onError={handleImageError}
+                onLoad={handleImageLoad}
+                style={{ opacity: imageLoaded ? 1 : 0 }}
+              />
+            </ImageContainer>
 
-        <Box style={{ float: "right", marginTop: "20px" }}>
-          {account.username === post.username && (
-            <>
-              <Link to={`/update/${post._id}`}>
-                <EditIcon />
-              </Link>
-              <DeleteIcon onClick={() => deleteBlog()} />
-            </>
-          )}
-        </Box>
+            <Content>
+              <Heading>{post.title}</Heading>
 
-        <Content>
-          <Heading>{post.title}</Heading>
+              <Author>
+                <Link
+                  to={`/?username=${post.username}`}
+                  style={{
+                    textDecoration: "none",
+                    color: "inherit",
+                    transition: "all 0.3s ease",
+                    "&:hover": {
+                      opacity: 0.8,
+                    },
+                  }}
+                >
+                  <Typography variant="h6">
+                    Author:{" "}
+                    <span style={{ fontWeight: 600 }}>{post.username}</span>
+                  </Typography>
+                </Link>
+                <Typography
+                  style={{
+                    marginLeft: "auto",
+                    opacity: 0.8,
+                  }}
+                >
+                  {new Date(post.createdDate).toDateString()}
+                </Typography>
+              </Author>
 
-          <Author>
-            <Link
-              to={`/?username=${post.username}`}
-              style={{
-                textDecoration: "none",
-                color: "inherit",
-                transition: "all 0.3s ease",
-                "&:hover": {
-                  opacity: 0.8,
-                },
-              }}
-            >
-              <Typography variant="h6">
-                Author: <span style={{ fontWeight: 600 }}>{post.username}</span>
+              <VoteContainer>
+                <Tooltip
+                  title={hasUpvoted ? "Remove Upvote" : "Upvote"}
+                  arrow
+                  placement="top"
+                  TransitionComponent={Fade}
+                  TransitionProps={{ timeout: 600 }}
+                >
+                  <span>
+                    <StyledIconButton
+                      onClick={() => handleVote("upvote")}
+                      disabled={isVoting}
+                      size="large"
+                      color={hasUpvoted ? "primary" : "default"}
+                    >
+                      {hasUpvoted ? <ThumbUp /> : <ThumbUpOutlined />}
+                    </StyledIconButton>
+                  </span>
+                </Tooltip>
+                <VoteCount>{score}</VoteCount>
+                <Tooltip
+                  title={hasDownvoted ? "Remove Downvote" : "Downvote"}
+                  arrow
+                  placement="top"
+                  TransitionComponent={Fade}
+                  TransitionProps={{ timeout: 600 }}
+                >
+                  <span>
+                    <StyledIconButton
+                      onClick={() => handleVote("downvote")}
+                      disabled={isVoting}
+                      size="large"
+                      color={hasDownvoted ? "error" : "default"}
+                    >
+                      {hasDownvoted ? <ThumbDown /> : <ThumbDownOutlined />}
+                    </StyledIconButton>
+                  </span>
+                </Tooltip>
+              </VoteContainer>
+
+              <Typography
+                style={{
+                  marginTop: "30px",
+                  lineHeight: "1.8",
+                  fontSize: "18px",
+                  color: "inherit",
+                  opacity: 0.9,
+                }}
+              >
+                {post.description}
               </Typography>
-            </Link>
-            <Typography
-              style={{
-                marginLeft: "auto",
-                opacity: 0.8,
-              }}
-            >
-              {new Date(post.createdDate).toDateString()}
-            </Typography>
-          </Author>
+            </Content>
 
-          <VoteContainer>
-            <Tooltip
-              title={hasUpvoted ? "Remove Upvote" : "Upvote"}
-              arrow
-              placement="top"
-              TransitionComponent={Fade}
-              TransitionProps={{ timeout: 600 }}
-            >
-              <span>
-                <StyledIconButton
-                  onClick={() => handleVote("upvote")}
-                  disabled={isVoting}
-                  size="large"
-                  color={hasUpvoted ? "primary" : "default"}
-                >
-                  {hasUpvoted ? <ThumbUp /> : <ThumbUpOutlined />}
-                </StyledIconButton>
-              </span>
-            </Tooltip>
-            <VoteCount>{score}</VoteCount>
-            <Tooltip
-              title={hasDownvoted ? "Remove Downvote" : "Downvote"}
-              arrow
-              placement="top"
-              TransitionComponent={Fade}
-              TransitionProps={{ timeout: 600 }}
-            >
-              <span>
-                <StyledIconButton
-                  onClick={() => handleVote("downvote")}
-                  disabled={isVoting}
-                  size="large"
-                  color={hasDownvoted ? "error" : "default"}
-                >
-                  {hasDownvoted ? <ThumbDown /> : <ThumbDownOutlined />}
-                </StyledIconButton>
-              </span>
-            </Tooltip>
-          </VoteContainer>
-
-          <Typography
-            style={{
-              marginTop: "30px",
-              lineHeight: "1.8",
-              fontSize: "18px",
-              color: "inherit",
-              opacity: 0.9,
-            }}
-          >
-            {post.description}
-          </Typography>
-        </Content>
-
-        <Comments post={post} />
-        <ScrollTop />
+            <Comments post={post} />
+          </>
+        )}
       </Container>
     </Fade>
   );

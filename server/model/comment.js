@@ -10,12 +10,17 @@ const CommentSchema = mongoose.Schema({
     required: true,
   },
   date: {
-    type: String,
-    required: true,
+    type: Date,
+    default: Date.now,
   },
   comments: {
     type: String,
     required: true,
+  },
+  parentId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "comment",
+    default: null,
   },
   upvotes: [
     {

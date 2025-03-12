@@ -6,13 +6,102 @@ import {
   Skeleton,
   useTheme,
   IconButton,
-  Tooltip,
+  Chip,
+  Avatar,
 } from "@mui/material";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { useState, useEffect, useContext } from "react";
-import { ThumbUp, ThumbDown } from "@mui/icons-material";
+import { ThumbUp, ThumbDown, AccessTime, Person } from "@mui/icons-material";
 import { DataContext } from "../../../context/DataProvider";
+import { formatDistanceToNow } from "date-fns";
+import { styled } from "@mui/material/styles";
+
+const StyledCard = styled(motion.div)(({ theme }) => ({
+  height: "100%",
+  background: theme.palette.background.paper,
+  borderRadius: theme.spacing(2),
+  overflow: "hidden",
+  boxShadow: theme.shadows[1],
+  transition: "transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out",
+  "&:hover": {
+    transform: "translateY(-4px)",
+    boxShadow: theme.shadows[8],
+  },
+}));
+
+const ImageContainer = styled(Box)(({ theme }) => ({
+  position: "relative",
+  paddingTop: "56.25%", // 16:9 aspect ratio
+  backgroundColor:
+    theme.palette.mode === "dark"
+      ? "rgba(255, 255, 255, 0.05)"
+      : "rgba(0, 0, 0, 0.03)",
+  overflow: "hidden",
+}));
+
+const StyledImage = styled("img")({
+  position: "absolute",
+  top: 0,
+  left: 0,
+  width: "100%",
+  height: "100%",
+  objectFit: "cover",
+  transition: "transform 0.3s ease",
+  "&:hover": {
+    transform: "scale(1.05)",
+  },
+});
+
+const CategoryChip = styled(Chip)(({ theme }) => ({
+  position: "absolute",
+  top: 16,
+  left: 16,
+  backgroundColor: "rgba(255, 255, 255, 0.9)",
+  backdropFilter: "blur(4px)",
+  fontWeight: 500,
+  "& .MuiChip-label": {
+    color: theme.palette.grey[900],
+  },
+}));
+
+const ContentContainer = styled(Box)(({ theme }) => ({
+  padding: theme.spacing(3),
+  display: "flex",
+  flexDirection: "column",
+  gap: theme.spacing(2),
+}));
+
+const MetaContainer = styled(Box)(({ theme }) => ({
+  padding: theme.spacing(2, 3),
+  borderTop: `1px solid ${
+    theme.palette.mode === "dark"
+      ? "rgba(255, 255, 255, 0.05)"
+      : "rgba(0, 0, 0, 0.05)"
+  }`,
+}));
+
+const AuthorInfo = styled(Box)(({ theme }) => ({
+  display: "flex",
+  alignItems: "center",
+  gap: theme.spacing(1.5),
+  marginBottom: theme.spacing(2),
+}));
+
+const VoteContainer = styled(Box)(({ theme }) => ({
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+}));
+
+const VoteButton = styled(IconButton)(({ theme, active }) => ({
+  color: active ? theme.palette.primary.main : theme.palette.text.secondary,
+  transition: "all 0.2s ease",
+  "&:hover": {
+    transform: "scale(1.1)",
+    color: active ? theme.palette.primary.dark : theme.palette.primary.light,
+  },
+}));
 
 const AnimatedPostCard = ({ post }) => {
   const theme = useTheme();
@@ -25,182 +114,162 @@ const AnimatedPostCard = ({ post }) => {
     "https://images.unsplash.com/photo-1543128639-4cb7e6eeef1b?ixid=MnwxMjA3fDB8MHxzZWFyY2h8Mnx8bGFwdG9wJTIwc2V0dXB8ZW58MHx8MHx8&ixlib=rb-1.2.1&w=1000&q=80";
 
   useEffect(() => {
-    // Reset states when post changes
     setImageLoaded(false);
     setImageError(false);
-
-    // Set image source with proper handling
-    if (post.picture) {
-      // Clean up any existing cache busting parameters
-      let baseUrl = post.picture;
-      if (baseUrl.includes("?")) {
-        baseUrl = baseUrl.split("?")[0];
-      }
-      setImageSrc(baseUrl);
-    } else {
-      setImageSrc(fallbackImage);
-    }
+    setImageSrc(post.picture || fallbackImage);
   }, [post]);
 
   const handleImageError = () => {
-    // If image fails to load, use fallback image
     setImageError(true);
     setImageSrc(fallbackImage);
   };
 
   const hasUpvoted = post.upvotes?.includes(account.username);
   const hasDownvoted = post.downvotes?.includes(account.username);
-  const score = post.score || 0;
 
   return (
     <Link to={`/details/${post._id}`} style={{ textDecoration: "none" }}>
-      <motion.div
-        style={{
-          background: theme.palette.background.paper,
-          borderRadius: "16px",
-          overflow: "hidden",
-          boxShadow:
-            theme.palette.mode === "dark"
-              ? "0 4px 6px rgba(255, 255, 255, 0.1)"
-              : "0 4px 6px rgba(0, 0, 0, 0.1)",
-          cursor: "pointer",
-          height: "100%",
-          display: "flex",
-          flexDirection: "column",
-        }}
-        whileHover={{ y: -5 }}
-        whileTap={{ scale: 0.98 }}
+      <StyledCard
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
       >
-        <Box
-          sx={{
-            position: "relative",
-            width: "100%",
-            height: "200px",
-            overflow: "hidden",
-            backgroundColor:
-              theme.palette.mode === "dark" ? "#2d2d2d" : "#f5f5f5",
-          }}
-        >
-          <AnimatePresence>
-            {!imageLoaded && !imageError && (
-              <motion.div
-                initial={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                style={{ width: "100%", height: "100%" }}
-              >
-                <Skeleton
-                  variant="rectangular"
-                  width="100%"
-                  height="100%"
-                  sx={{
-                    bgcolor:
-                      theme.palette.mode === "dark" ? "grey.800" : "grey.200",
-                  }}
-                />
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          <motion.img
-            src={imageSrc}
-            alt={post.title}
-            style={{
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-              opacity: imageLoaded ? 1 : 0,
-            }}
-            onLoad={() => setImageLoaded(true)}
-            onError={handleImageError}
-            whileHover={{ scale: 1.05 }}
-            transition={{ duration: 0.5 }}
-            crossOrigin="anonymous"
-          />
-
-          <Box
-            sx={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              background:
-                "linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.7) 100%)",
-              opacity: 0,
-              transition: "opacity 0.3s ease",
-              "&:hover": {
-                opacity: 1,
-              },
-            }}
-          >
-            <Box
+        <ImageContainer>
+          {!imageLoaded && !imageError && (
+            <Skeleton
+              variant="rectangular"
+              width="100%"
+              height="100%"
               sx={{
                 position: "absolute",
-                bottom: 0,
+                top: 0,
                 left: 0,
-                right: 0,
-                p: 2,
-                color: "white",
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
               }}
-            >
-              <Typography variant="subtitle2" sx={{ opacity: 0.9 }}>
-                {new Date(post.createdDate).toLocaleDateString()}
-              </Typography>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                <ThumbUp
-                  fontSize="small"
-                  color={hasUpvoted ? "primary" : "inherit"}
-                  sx={{ opacity: 0.9 }}
-                />
-                <Typography variant="subtitle2" sx={{ opacity: 0.9 }}>
-                  {score}
-                </Typography>
-                <ThumbDown
-                  fontSize="small"
-                  color={hasDownvoted ? "error" : "inherit"}
-                  sx={{ opacity: 0.9 }}
-                />
-              </Box>
-            </Box>
-          </Box>
-        </Box>
+            />
+          )}
+          <StyledImage
+            src={imageSrc}
+            alt={post.title}
+            onLoad={() => setImageLoaded(true)}
+            onError={handleImageError}
+            style={{ opacity: imageLoaded ? 1 : 0 }}
+            crossOrigin="anonymous"
+          />
+          <CategoryChip label={post.categories} size="small" />
+        </ImageContainer>
 
-        <CardContent sx={{ flexGrow: 1 }}>
+        <ContentContainer>
           <Typography
             variant="h6"
-            gutterBottom
             sx={{
+              fontWeight: 600,
               display: "-webkit-box",
               WebkitLineClamp: 2,
               WebkitBoxOrient: "vertical",
               overflow: "hidden",
-              fontWeight: 600,
-              color: theme.palette.text.primary,
+              lineHeight: 1.3,
+              mb: 1,
             }}
           >
             {post.title}
           </Typography>
+
           <Typography
             variant="body2"
+            color="text.secondary"
             sx={{
               display: "-webkit-box",
               WebkitLineClamp: 3,
               WebkitBoxOrient: "vertical",
               overflow: "hidden",
-              lineHeight: 1.5,
-              color: theme.palette.text.secondary,
+              lineHeight: 1.6,
             }}
           >
             {post.description}
           </Typography>
-        </CardContent>
-      </motion.div>
+        </ContentContainer>
+
+        <MetaContainer>
+          <AuthorInfo>
+            <Avatar
+              sx={{
+                width: 32,
+                height: 32,
+                bgcolor: theme.palette.primary.main,
+              }}
+            >
+              {post.username?.[0]?.toUpperCase()}
+            </Avatar>
+            <Box sx={{ flex: 1 }}>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                  {post.username}
+                </Typography>
+                <Chip
+                  label={post.categories}
+                  size="small"
+                  sx={{
+                    height: 20,
+                    "& .MuiChip-label": {
+                      px: 1,
+                      fontSize: "0.75rem",
+                    },
+                  }}
+                />
+              </Box>
+              <Typography
+                variant="caption"
+                color="text.secondary"
+                sx={{ display: "flex", alignItems: "center", gap: 0.5 }}
+              >
+                <AccessTime fontSize="small" />
+                {formatDistanceToNow(new Date(post.createdDate), {
+                  addSuffix: true,
+                })}
+              </Typography>
+            </Box>
+          </AuthorInfo>
+
+          <VoteContainer>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+              <VoteButton
+                size="small"
+                active={hasUpvoted}
+                onClick={(e) => {
+                  e.preventDefault();
+                  // Handle upvote
+                }}
+              >
+                <ThumbUp fontSize="small" />
+              </VoteButton>
+              <Typography
+                variant="body2"
+                sx={{ minWidth: 20, textAlign: "center" }}
+              >
+                {post.upvotes?.length || 0}
+              </Typography>
+            </Box>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+              <VoteButton
+                size="small"
+                active={hasDownvoted}
+                onClick={(e) => {
+                  e.preventDefault();
+                  // Handle downvote
+                }}
+              >
+                <ThumbDown fontSize="small" />
+              </VoteButton>
+              <Typography
+                variant="body2"
+                sx={{ minWidth: 20, textAlign: "center" }}
+              >
+                {post.downvotes?.length || 0}
+              </Typography>
+            </Box>
+          </VoteContainer>
+        </MetaContainer>
+      </StyledCard>
     </Link>
   );
 };

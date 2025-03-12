@@ -183,3 +183,42 @@ export const votePost = async (request, response) => {
     });
   }
 };
+
+export const searchPosts = async (request, response) => {
+  try {
+    const { query } = request.query;
+    if (!query) {
+      return response.status(400).json({
+        msg: "Search query is required",
+        isSuccess: false,
+      });
+    }
+
+    // Create a case-insensitive regex for the search query
+    const searchRegex = new RegExp(query, "i");
+
+    // Search in title, description, and username
+    const posts = await Post.find({
+      $or: [
+        { title: { $regex: searchRegex } },
+        { description: { $regex: searchRegex } },
+        { username: { $regex: searchRegex } },
+        { categories: { $regex: searchRegex } },
+      ],
+    })
+      .sort({ createdDate: -1 })
+      .limit(10); // Limit to 10 results for better performance
+
+    response.status(200).json({
+      msg: "Posts retrieved successfully",
+      isSuccess: true,
+      data: posts,
+    });
+  } catch (error) {
+    console.error("Search posts error:", error);
+    response.status(500).json({
+      msg: error.message,
+      isSuccess: false,
+    });
+  }
+};

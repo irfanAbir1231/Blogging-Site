@@ -1,25 +1,50 @@
 import { useState, useEffect, useContext } from "react";
-import { Box, TextareaAutosize, Button, styled, useTheme } from "@mui/material";
+import {
+  Box,
+  TextareaAutosize,
+  Button,
+  styled,
+  useTheme,
+  Typography,
+  Avatar,
+  Fade,
+} from "@mui/material";
 
 import { DataContext } from "../../../context/DataProvider";
-
 import { API } from "../../../service/api";
-
-//components
 import Comment from "./Comment";
+import CommentSkeleton from "./CommentSkeleton";
 
 const Container = styled(Box)`
-  margin-top: 100px;
-  display: flex;
-  gap: 20px;
-  align-items: flex-start;
+  margin-top: 40px;
 `;
 
-const Image = styled("img")({
-  width: 50,
-  height: 50,
-  borderRadius: "50%",
-});
+const CommentForm = styled(Box)(({ theme }) => ({
+  display: "flex",
+  gap: "20px",
+  alignItems: "flex-start",
+  backgroundColor:
+    theme.palette.mode === "dark" ? theme.palette.background.paper : "#ffffff",
+  padding: "24px",
+  borderRadius: "12px",
+  border: `1px solid ${
+    theme.palette.mode === "dark"
+      ? "rgba(255, 255, 255, 0.12)"
+      : "rgba(0, 0, 0, 0.12)"
+  }`,
+  boxShadow:
+    theme.palette.mode === "dark"
+      ? "0 2px 4px rgba(255, 255, 255, 0.05)"
+      : "0 2px 4px rgba(0, 0, 0, 0.05)",
+}));
+
+const UserAvatar = styled(Avatar)(({ theme }) => ({
+  width: 40,
+  height: 40,
+  backgroundColor: theme.palette.primary.main,
+  fontSize: "16px",
+  fontWeight: 600,
+}));
 
 const StyledTextArea = styled(TextareaAutosize)(({ theme }) => ({
   height: "100px !important",
@@ -58,6 +83,29 @@ const StyledTextArea = styled(TextareaAutosize)(({ theme }) => ({
   },
 }));
 
+const CommentButton = styled(Button)(({ theme }) => ({
+  marginTop: "16px",
+  height: 40,
+  textTransform: "none",
+  borderRadius: "8px",
+  padding: "0 24px",
+  boxShadow:
+    theme.palette.mode === "dark"
+      ? "0 2px 4px rgba(255, 255, 255, 0.1)"
+      : "0 2px 4px rgba(0, 0, 0, 0.1)",
+}));
+
+const CommentsContainer = styled(Box)(({ theme }) => ({
+  marginTop: "32px",
+}));
+
+const NoComments = styled(Typography)(({ theme }) => ({
+  textAlign: "center",
+  color: theme.palette.text.secondary,
+  marginTop: "32px",
+  fontSize: "16px",
+}));
+
 const initialValue = {
   name: "",
   postId: "",
@@ -66,24 +114,26 @@ const initialValue = {
 };
 
 const Comments = ({ post }) => {
-  const url = "https://static.thenounproject.com/png/12017-200.png";
   const theme = useTheme();
-
   const [comment, setComment] = useState(initialValue);
   const [comments, setComments] = useState([]);
   const [toggle, setToggle] = useState(false);
-
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const { account } = useContext(DataContext);
 
   useEffect(() => {
     const getData = async () => {
       try {
+        setIsLoading(true);
         const response = await API.getAllComments(post._id);
         if (response.isSuccess) {
           setComments(response.data);
         }
       } catch (error) {
         console.error("Error fetching comments:", error);
+      } finally {
+        setIsLoading(false);
       }
     };
     if (post._id) {
@@ -101,60 +151,92 @@ const Comments = ({ post }) => {
   };
 
   const addComment = async () => {
-    if (!comment.comments.trim()) return; // Don't submit empty comments
+    if (!comment.comments.trim()) return;
 
     try {
-      await API.newComment(comment);
-      setComment(initialValue);
-      setToggle((prev) => !prev);
+      setIsSubmitting(true);
+      const response = await API.newComment(comment);
+
+      if (response.isSuccess) {
+        setComment(initialValue);
+        setToggle((prev) => !prev);
+      }
     } catch (error) {
       console.error("Error adding comment:", error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
+  const getInitials = (name) => {
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
+  const renderSkeletons = () => {
+    return (
+      <>
+        <CommentSkeleton hasReplies={true} />
+        <CommentSkeleton />
+        <CommentSkeleton hasReplies={true} />
+      </>
+    );
+  };
+
   return (
-    <Box sx={{ mt: 4 }}>
-      <Container>
-        <Image src={url} alt="dp" />
+    <Container>
+      <Typography variant="h6" gutterBottom>
+        Comments {!isLoading && comments.length > 0 && `(${comments.length})`}
+      </Typography>
+
+      <CommentForm>
+        <UserAvatar>{getInitials(account.username)}</UserAvatar>
         <Box sx={{ flex: 1 }}>
           <StyledTextArea
-            minRows={5}
-            placeholder="What's on your mind?"
+            minRows={3}
+            placeholder="Write a comment..."
             onChange={(e) => handleChange(e)}
             value={comment.comments}
           />
-          <Button
-            variant="contained"
-            color="primary"
-            size="medium"
-            sx={{
-              mt: 2,
-              height: 40,
-              textTransform: "none",
-              borderRadius: "8px",
-              boxShadow:
-                theme.palette.mode === "dark"
-                  ? "0 2px 4px rgba(255, 255, 255, 0.1)"
-                  : "0 2px 4px rgba(0, 0, 0, 0.1)",
-            }}
-            onClick={(e) => addComment(e)}
-          >
-            Post Comment
-          </Button>
+          <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
+            <CommentButton
+              variant="contained"
+              color="primary"
+              onClick={addComment}
+              disabled={!comment.comments.trim() || isSubmitting}
+            >
+              {isSubmitting ? "Posting..." : "Post Comment"}
+            </CommentButton>
+          </Box>
         </Box>
-      </Container>
-      <Box sx={{ mt: 4 }}>
-        {comments &&
-          comments.length > 0 &&
-          comments.map((comment) => (
-            <Comment
-              key={comment._id}
-              comment={comment}
-              setToggle={setToggle}
-            />
-          ))}
-      </Box>
-    </Box>
+      </CommentForm>
+
+      <CommentsContainer>
+        {isLoading ? (
+          renderSkeletons()
+        ) : comments.length > 0 ? (
+          <Fade in={true} timeout={500}>
+            <Box>
+              {comments.map((comment) => (
+                <Comment
+                  key={comment._id}
+                  comment={comment}
+                  setToggle={setToggle}
+                />
+              ))}
+            </Box>
+          </Fade>
+        ) : (
+          <Fade in={true} timeout={500}>
+            <NoComments>No comments yet. Be the first to comment!</NoComments>
+          </Fade>
+        )}
+      </CommentsContainer>
+    </Container>
   );
 };
 

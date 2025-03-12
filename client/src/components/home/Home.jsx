@@ -1,6 +1,7 @@
 import { Grid, Container, Box, Typography } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import { Suspense, lazy } from "react";
+import { useNavigate } from "react-router-dom";
 
 //components
 import Banner from "../banner/Banner";
@@ -9,6 +10,7 @@ import Posts from "./post/Posts";
 import ParallaxSection from "../animations/ParallaxSection";
 import ScrollAnimation from "../animations/ScrollAnimation";
 import HoverCard from "../animations/HoverCard";
+import SearchBar from "./SearchBar";
 
 const StyledContainer = styled(Container)`
   padding: 2rem 0;
@@ -50,6 +52,14 @@ const LoadingFallback = () => (
 );
 
 const Home = () => {
+  const navigate = useNavigate();
+
+  const handleSearch = (selectedPost) => {
+    if (selectedPost) {
+      navigate(`/details/${selectedPost._id}`);
+    }
+  };
+
   return (
     <Box>
       <ParallaxSection
@@ -87,15 +97,17 @@ const Home = () => {
             <SectionTitle variant="h2">Latest Posts</SectionTitle>
           </ScrollAnimation>
 
+          <SearchBar onSearch={handleSearch} />
+
           <Grid container spacing={4}>
-            <Grid item xs={12} md={3}>
+            <Grid item xs={12} md={2}>
               <ScrollAnimation direction="right" delay={0.6}>
                 <HoverCard>
                   <Categories />
                 </HoverCard>
               </ScrollAnimation>
             </Grid>
-            <Grid item xs={12} md={9}>
+            <Grid item xs={12} md={10}>
               <ScrollAnimation direction="left" delay={0.8}>
                 <Suspense fallback={<LoadingFallback />}>
                   <Posts />
