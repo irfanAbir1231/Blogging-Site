@@ -6,13 +6,21 @@ import {
   Box,
   IconButton,
   Tooltip,
+  Avatar,
+  Menu,
+  MenuItem,
+  ListItemIcon,
+  ListItemText,
 } from "@mui/material";
 import { Link, useNavigate } from "react-router-dom";
 import MenuIcon from "@mui/icons-material/Menu";
 import Brightness4Icon from "@mui/icons-material/Brightness4";
 import Brightness7Icon from "@mui/icons-material/Brightness7";
-import { useState } from "react";
+import PersonIcon from "@mui/icons-material/Person";
+import LogoutIcon from "@mui/icons-material/Logout";
+import { useState, useContext } from "react";
 import { useTheme } from "../../context/ThemeProvider";
+import { DataContext } from "../../context/DataProvider";
 
 const Component = styled(AppBar)(({ theme }) => ({
   background: theme.palette.background.paper,
@@ -65,8 +73,28 @@ const Header = () => {
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { mode, toggleTheme } = useTheme();
+  const { account, logout: contextLogout } = useContext(DataContext);
 
-  const logout = async () => navigate("/account");
+  const [anchorEl, setAnchorEl] = useState(null);
+  const open = Boolean(anchorEl);
+
+  const handleProfileMenuOpen = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleProfileMenuClose = () => {
+    setAnchorEl(null);
+  };
+
+  const navigateToProfile = () => {
+    handleProfileMenuClose();
+    navigate(`/profile/${account.username}`);
+  };
+
+  const logout = async () => {
+    contextLogout();
+    navigate("/account");
+  };
 
   return (
     <Component>
@@ -123,7 +151,70 @@ const Header = () => {
               {mode === "dark" ? <Brightness7Icon /> : <Brightness4Icon />}
             </IconButton>
           </Tooltip>
-          <StyledButton onClick={logout}>Logout</StyledButton>
+
+          <Box sx={{ display: "flex", alignItems: "center" }}>
+            <Tooltip title="Account settings">
+              <IconButton
+                onClick={handleProfileMenuOpen}
+                size="small"
+                sx={{ ml: 1 }}
+                aria-controls={open ? "account-menu" : undefined}
+                aria-haspopup="true"
+                aria-expanded={open ? "true" : undefined}
+              >
+                <Avatar
+                  sx={{
+                    width: 32,
+                    height: 32,
+                    bgcolor: "primary.main",
+                    fontSize: "0.875rem",
+                    fontWeight: "bold",
+                  }}
+                >
+                  {account.username ? account.username[0].toUpperCase() : "U"}
+                </Avatar>
+              </IconButton>
+            </Tooltip>
+
+            <Menu
+              anchorEl={anchorEl}
+              id="account-menu"
+              open={open}
+              onClose={handleProfileMenuClose}
+              onClick={handleProfileMenuClose}
+              PaperProps={{
+                elevation: 0,
+                sx: {
+                  overflow: "visible",
+                  filter: "drop-shadow(0px 2px 8px rgba(0,0,0,0.15))",
+                  mt: 1.5,
+                  borderRadius: 2,
+                  minWidth: 180,
+                  "& .MuiAvatar-root": {
+                    width: 32,
+                    height: 32,
+                    ml: -0.5,
+                    mr: 1,
+                  },
+                },
+              }}
+              transformOrigin={{ horizontal: "right", vertical: "top" }}
+              anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
+            >
+              <MenuItem onClick={navigateToProfile}>
+                <ListItemIcon>
+                  <PersonIcon fontSize="small" />
+                </ListItemIcon>
+                <ListItemText primary="My Profile" />
+              </MenuItem>
+              <MenuItem onClick={logout}>
+                <ListItemIcon>
+                  <LogoutIcon fontSize="small" />
+                </ListItemIcon>
+                <ListItemText primary="Logout" />
+              </MenuItem>
+            </Menu>
+          </Box>
         </NavLinks>
       </Container>
     </Component>

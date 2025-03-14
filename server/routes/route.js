@@ -27,6 +27,9 @@ import {
   loginUser,
   singupUser,
   logoutUser,
+  getUserProfile,
+  updateUserProfile,
+  getUserStats,
 } from "../controller/user-controller.js";
 import {
   authenticateToken,
@@ -50,6 +53,10 @@ router.delete("/delete/:id", authenticateToken, deletePost);
 router.get("/post/:id", authenticateToken, getPost);
 router.get("/posts", authenticateToken, getAllPosts);
 router.get("/posts/search", authenticateToken, searchPosts);
+
+router.get("/user/:username", authenticateToken, getUserProfile);
+router.put("/user/:username", authenticateToken, updateUserProfile);
+router.get("/user/:username/stats", authenticateToken, getUserStats);
 
 router.post("/file/upload", upload.single("file"), uploadImage);
 router.get("/file/:filename", getImage);

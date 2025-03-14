@@ -103,8 +103,8 @@ const MetaText = styled(Typography)({
   fontSize: "0.875rem",
 });
 
-const VoteButton = styled(IconButton)(({ theme, active }) => ({
-  color: active ? theme.palette.primary.main : theme.palette.text.secondary,
+const VoteButton = styled(IconButton)(({ theme, active: isActive }) => ({
+  color: isActive ? theme.palette.primary.main : theme.palette.text.secondary,
   transition: "color 0.2s ease, transform 0.2s ease",
   "&:hover": {
     transform: "scale(1.1)",

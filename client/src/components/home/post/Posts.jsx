@@ -57,19 +57,25 @@ const Posts = () => {
           queryParams.category = selectedCategory;
         }
 
+        console.log("Fetching posts with params:", queryParams);
         const response = await API.getAllPosts(queryParams);
+        console.log("API response:", response);
 
         if (!mountedRef.current) return;
 
         if (response.isSuccess) {
           const { data, totalPages: total } = response.data;
+          console.log("Received posts:", data);
           setTotalPages(total);
 
+          // No need for client-side filtering as server now handles it
+          let filteredData = data;
+
           if (pageNum === 1) {
-            setPosts(data);
+            setPosts(filteredData);
           } else {
             setPosts((prevPosts) => {
-              const newPosts = data.filter(
+              const newPosts = filteredData.filter(
                 (newPost) =>
                   !prevPosts.some(
                     (existingPost) => existingPost._id === newPost._id
@@ -149,15 +155,21 @@ const Posts = () => {
 
   return (
     <Box>
-      {selectedCategory && (
+      {selectedCategory && selectedCategory !== "All" && (
         <Typography variant="h6" sx={{ mb: 3 }}>
-          Showing posts in {selectedCategory}
+          Showing posts tagged with "{selectedCategory}"
         </Typography>
       )}
 
       {initialLoading ? (
         // Show skeleton loading for initial load
         renderSkeletons(4)
+      ) : posts.length === 0 ? (
+        <Box sx={{ textAlign: "center", py: 4 }}>
+          <Typography variant="h6">
+            No posts found for category "{selectedCategory}"
+          </Typography>
+        </Box>
       ) : (
         <>
           <Grid container spacing={3}>

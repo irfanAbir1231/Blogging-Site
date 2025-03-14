@@ -10,6 +10,8 @@ import {
   useScrollTrigger,
   Zoom,
   Fab,
+  Chip,
+  Stack,
 } from "@mui/material";
 import {
   Delete,
@@ -254,6 +256,24 @@ const StyledIconButton = styled(IconButton)(({ theme }) => ({
   },
   "&:active": {
     transform: "scale(0.95)",
+  },
+}));
+
+const TagsContainer = styled(Box)(({ theme }) => ({
+  display: "flex",
+  flexWrap: "wrap",
+  gap: theme.spacing(1),
+  marginTop: theme.spacing(2),
+  marginBottom: theme.spacing(3),
+}));
+
+const TagChip = styled(Chip)(({ theme }) => ({
+  borderRadius: theme.spacing(1),
+  fontWeight: 500,
+  transition: "all 0.2s ease",
+  "&:hover": {
+    transform: "translateY(-2px)",
+    boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
   },
 }));
 
@@ -522,6 +542,29 @@ const DetailView = () => {
                   {new Date(post.createdDate).toDateString()}
                 </Typography>
               </Author>
+
+              <TagsContainer>
+                {post.tags && post.tags.length > 0 ? (
+                  post.tags.map((tag) => (
+                    <TagChip
+                      key={tag}
+                      label={tag}
+                      color="primary"
+                      variant="outlined"
+                      clickable
+                      onClick={() => navigate(`/?category=${tag}`)}
+                    />
+                  ))
+                ) : post.categories ? (
+                  <TagChip
+                    label={post.categories}
+                    color="primary"
+                    variant="outlined"
+                    clickable
+                    onClick={() => navigate(`/?category=${post.categories}`)}
+                  />
+                ) : null}
+              </TagsContainer>
 
               <VoteContainer>
                 <Tooltip

@@ -8,6 +8,7 @@ import {
   IconButton,
   Chip,
   Avatar,
+  Stack,
 } from "@mui/material";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
@@ -65,6 +66,21 @@ const CategoryChip = styled(Chip)(({ theme }) => ({
   },
 }));
 
+const TagsContainer = styled(Box)(({ theme }) => ({
+  display: "flex",
+  flexWrap: "wrap",
+  gap: theme.spacing(0.5),
+  marginTop: theme.spacing(1),
+}));
+
+const TagChip = styled(Chip)(({ theme }) => ({
+  height: 20,
+  "& .MuiChip-label": {
+    px: 1,
+    fontSize: "0.75rem",
+  },
+}));
+
 const ContentContainer = styled(Box)(({ theme }) => ({
   padding: theme.spacing(3),
   display: "flex",
@@ -94,12 +110,12 @@ const VoteContainer = styled(Box)(({ theme }) => ({
   alignItems: "center",
 }));
 
-const VoteButton = styled(IconButton)(({ theme, active }) => ({
-  color: active ? theme.palette.primary.main : theme.palette.text.secondary,
+const VoteButton = styled(IconButton)(({ theme, active: isActive }) => ({
+  color: isActive ? theme.palette.primary.main : theme.palette.text.secondary,
   transition: "all 0.2s ease",
   "&:hover": {
     transform: "scale(1.1)",
-    color: active ? theme.palette.primary.dark : theme.palette.primary.light,
+    color: isActive ? theme.palette.primary.dark : theme.palette.primary.light,
   },
 }));
 
@@ -155,7 +171,11 @@ const AnimatedPostCard = ({ post }) => {
             style={{ opacity: imageLoaded ? 1 : 0 }}
             crossOrigin="anonymous"
           />
-          <CategoryChip label={post.categories} size="small" />
+          {post.tags && post.tags.length > 0 ? (
+            <CategoryChip label={post.tags[0]} size="small" />
+          ) : post.categories ? (
+            <CategoryChip label={post.categories} size="small" />
+          ) : null}
         </ImageContainer>
 
         <ContentContainer>
@@ -187,6 +207,18 @@ const AnimatedPostCard = ({ post }) => {
           >
             {post.description}
           </Typography>
+
+          {post.tags && post.tags.length > 0 ? (
+            <TagsContainer>
+              {post.tags.map((tag) => (
+                <TagChip key={tag} label={tag} size="small" />
+              ))}
+            </TagsContainer>
+          ) : post.categories ? (
+            <TagsContainer>
+              <TagChip label={post.categories} size="small" />
+            </TagsContainer>
+          ) : null}
         </ContentContainer>
 
         <MetaContainer>
@@ -201,22 +233,9 @@ const AnimatedPostCard = ({ post }) => {
               {post.username?.[0]?.toUpperCase()}
             </Avatar>
             <Box sx={{ flex: 1 }}>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-                  {post.username}
-                </Typography>
-                <Chip
-                  label={post.categories}
-                  size="small"
-                  sx={{
-                    height: 20,
-                    "& .MuiChip-label": {
-                      px: 1,
-                      fontSize: "0.75rem",
-                    },
-                  }}
-                />
-              </Box>
+              <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                {post.username}
+              </Typography>
               <Typography
                 variant="caption"
                 color="text.secondary"
@@ -234,7 +253,7 @@ const AnimatedPostCard = ({ post }) => {
             <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
               <VoteButton
                 size="small"
-                active={hasUpvoted}
+                sx={{ color: hasUpvoted ? "primary.main" : "text.secondary" }}
                 onClick={(e) => {
                   e.preventDefault();
                   // Handle upvote
@@ -252,7 +271,7 @@ const AnimatedPostCard = ({ post }) => {
             <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
               <VoteButton
                 size="small"
-                active={hasDownvoted}
+                sx={{ color: hasDownvoted ? "error.main" : "text.secondary" }}
                 onClick={(e) => {
                   e.preventDefault();
                   // Handle downvote

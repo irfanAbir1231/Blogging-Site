@@ -95,7 +95,16 @@ export const getAllPosts = async (request, response) => {
   try {
     const query = {};
     if (username) query.username = username;
-    if (category) query.categories = category;
+
+    // Handle category filtering with support for both categories field and tags array
+    if (category) {
+      query.$or = [
+        { categories: category }, // Exact match for categories field
+        { tags: category }, // MongoDB will match if the array contains this value
+      ];
+    }
+
+    console.log("Query:", JSON.stringify(query));
 
     // Get total count for pagination
     const total = await Post.countDocuments(query);
@@ -106,6 +115,15 @@ export const getAllPosts = async (request, response) => {
       .skip((page - 1) * limit)
       .limit(limit);
 
+    // Log each post's categories and tags for debugging
+    posts.forEach((post) => {
+      console.log(
+        `Post ${post._id}: categories=${post.categories}, tags=${JSON.stringify(
+          post.tags
+        )}`
+      );
+    });
+
     response.status(200).json({
       data: posts,
       total,
@@ -113,6 +131,7 @@ export const getAllPosts = async (request, response) => {
       totalPages: Math.ceil(total / limit),
     });
   } catch (error) {
+    console.error("Error in getAllPosts:", error);
     response.status(500).json(error);
   }
 };
@@ -197,13 +216,14 @@ export const searchPosts = async (request, response) => {
     // Create a case-insensitive regex for the search query
     const searchRegex = new RegExp(query, "i");
 
-    // Search in title, description, and username
+    // Search in title, description, username, categories, and tags
     const posts = await Post.find({
       $or: [
         { title: { $regex: searchRegex } },
         { description: { $regex: searchRegex } },
         { username: { $regex: searchRegex } },
         { categories: { $regex: searchRegex } },
+        { tags: { $regex: searchRegex } }, // Add search in tags array
       ],
     })
       .sort({ createdDate: -1 })

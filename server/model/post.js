@@ -20,8 +20,12 @@ const PostSchema = mongoose.Schema({
     required: true,
   },
   categories: {
-    type: String, // Changed from Array to String to match client usage
+    type: String, // Keeping for backward compatibility
     required: false,
+  },
+  tags: {
+    type: [String], // Array of strings for multiple tags
+    default: [],
   },
   createdDate: {
     type: Date,

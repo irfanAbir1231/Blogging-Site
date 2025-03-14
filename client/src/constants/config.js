@@ -44,4 +44,7 @@ export const SERVICE_URLS = {
   voteComment: { url: "/comment/vote", method: "POST", query: true },
   updateComment: { url: "/comment/update", method: "PUT", query: true },
   searchPosts: { url: "/posts/search", method: "GET", params: true },
+  getUserProfile: { url: "/user", method: "GET", query: true },
+  updateUserProfile: { url: "/user", method: "PUT", query: true },
+  getUserStats: { url: "/user/stats", method: "GET", query: true },
 };

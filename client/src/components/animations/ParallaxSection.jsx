@@ -18,6 +18,8 @@ const ParallaxContent = styled(motion.div)`
   text-align: center;
   color: white;
   padding: 2rem;
+  width: 100%;
+  max-width: 1200px;
 `;
 
 const ParallaxBackground = styled(motion.div)`
@@ -43,7 +45,12 @@ const ParallaxSection = ({
   });
 
   const y = useTransform(scrollYProgress, [0, 1], ["0%", "50%"]);
-  const opacity = useTransform(scrollYProgress, [0, 0.5, 1], [1, 0.5, 1]);
+  // Keep content at full opacity
+  const backgroundOpacity = useTransform(
+    scrollYProgress,
+    [0, 0.5, 1],
+    [1, 0.8, 1]
+  );
 
   return (
     <ParallaxContainer ref={ref}>
@@ -51,9 +58,10 @@ const ParallaxSection = ({
         style={{
           backgroundImage: `linear-gradient(${overlayColor}, ${overlayColor}), url(${backgroundImage})`,
           y,
+          opacity: backgroundOpacity,
         }}
       />
-      <ParallaxContent style={{ opacity }}>{children}</ParallaxContent>
+      <ParallaxContent>{children}</ParallaxContent>
     </ParallaxContainer>
   );
 };

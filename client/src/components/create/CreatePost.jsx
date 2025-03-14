@@ -15,6 +15,8 @@ import {
   MenuItem,
   Paper,
   Container as MuiContainer,
+  Chip,
+  OutlinedInput,
 } from "@mui/material";
 import { AddCircle as Add } from "@mui/icons-material";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -82,6 +84,12 @@ const CategorySection = styled(Box)(({ theme }) => ({
   backgroundColor: theme.palette.background.paper,
   borderRadius: theme.spacing(1),
   border: `1px solid ${theme.palette.divider}`,
+}));
+
+const TagChip = styled(Chip)(({ theme }) => ({
+  margin: theme.spacing(0.5),
+  borderRadius: theme.spacing(1),
+  fontWeight: 500,
 }));
 
 const StyledInputBase = styled(InputBase)(({ theme }) => ({
@@ -160,7 +168,7 @@ const initialPost = {
   description: "",
   picture: "",
   username: "",
-  categories: "Nutrition", // Set default category
+  tags: ["Nutrition"], // Changed from categories to tags array
   createdDate: new Date(),
 };
 
@@ -206,7 +214,7 @@ const CreatePost = () => {
   const safeSetImageSrc = safeSetState(setImageSrc);
 
   const fallbackUrl =
-    "https://images.unsplash.com/photo-1543128639-4cb7e6eeef1b?ixid=MnwxMjA3fDB8MHxzZWFyY2h8Mnx8bGFwdG9wJTIwc2V0dXB8ZW58MHx8MHx8&ixlib=rb-1.2.1&w=1000&q=80";
+    "https://images.unsplash.com/photo-1512314889357-e157c22f938d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1471&q=80";
 
   // Define a reference for the image element to test it directly
   const imgRef = useRef(null);
@@ -371,7 +379,7 @@ const CreatePost = () => {
     if (mounted) {
       safeSetPost((prev) => ({
         ...prev,
-        categories: category,
+        tags: category !== "All" ? [category] : prev.tags, // Update to use tags array
         username: account.username,
       }));
     }
@@ -629,20 +637,42 @@ const CreatePost = () => {
 
           <CategorySection>
             <Typography variant="subtitle1" color="textSecondary">
-              Category:
+              Tags:
             </Typography>
-            <StyledSelect
-              value={post.categories}
-              onChange={(e) =>
-                safeSetPost({ ...post, categories: e.target.value })
-              }
-            >
-              {categories.map((category) => (
-                <MenuItem key={category.id} value={category.type}>
-                  {category.type}
-                </MenuItem>
-              ))}
-            </StyledSelect>
+            <FormControl fullWidth>
+              <Select
+                multiple
+                value={post.tags}
+                onChange={(e) => safeSetPost({ ...post, tags: e.target.value })}
+                input={<OutlinedInput />}
+                renderValue={(selected) => (
+                  <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
+                    {selected.map((value) => (
+                      <TagChip
+                        key={value}
+                        label={value}
+                        color="primary"
+                        variant="outlined"
+                      />
+                    ))}
+                  </Box>
+                )}
+                MenuProps={{
+                  PaperProps: {
+                    style: {
+                      maxHeight: 48 * 4.5 + 8,
+                      width: 250,
+                    },
+                  },
+                }}
+              >
+                {categories.map((category) => (
+                  <MenuItem key={category.id} value={category.type}>
+                    {category.type}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
           </CategorySection>
 
           <StyledTextArea
