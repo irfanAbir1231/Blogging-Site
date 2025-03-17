@@ -35,10 +35,12 @@ import PhotoCameraIcon from "@mui/icons-material/PhotoCamera";
 import ArticleIcon from "@mui/icons-material/Article";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import CommentIcon from "@mui/icons-material/Comment";
+import HealthAndSafetyIcon from "@mui/icons-material/HealthAndSafety";
 
 // Components
 import Posts from "../home/post/Posts";
 import ScrollAnimation from "../animations/ScrollAnimation";
+import HealthProfile from "./HealthProfile";
 
 const ProfileContainer = styled(Container)(({ theme }) => ({
   paddingTop: theme.spacing(8),
@@ -164,17 +166,43 @@ const Profile = () => {
           });
 
           // Fetch user stats
-          const statsResponse = await API.getUserStats(username);
-          if (statsResponse.isSuccess) {
-            setStats(statsResponse.data);
-          } else {
+          try {
+            const statsResponse = await API.getUserStats(username);
+            if (statsResponse && statsResponse.isSuccess) {
+              setStats(statsResponse.data);
+            } else {
+              console.log("Falling back to post count only due to stats error");
+              // Fallback to post count only
+              const postsResponse = await API.getAllPosts({ username });
+              if (postsResponse && postsResponse.isSuccess) {
+                setStats((prev) => ({
+                  ...prev,
+                  posts:
+                    postsResponse.data.total ||
+                    postsResponse.data.pagination?.total ||
+                    0,
+                }));
+              }
+            }
+          } catch (statsError) {
+            console.log(
+              "Error fetching stats, falling back to post count:",
+              statsError
+            );
             // Fallback to post count only
-            const postsResponse = await API.getAllPosts({ username });
-            if (postsResponse.isSuccess) {
-              setStats((prev) => ({
-                ...prev,
-                posts: postsResponse.data.total || 0,
-              }));
+            try {
+              const postsResponse = await API.getAllPosts({ username });
+              if (postsResponse && postsResponse.isSuccess) {
+                setStats((prev) => ({
+                  ...prev,
+                  posts:
+                    postsResponse.data.total ||
+                    postsResponse.data.pagination?.total ||
+                    0,
+                }));
+              }
+            } catch (postsError) {
+              console.error("Error fetching posts count:", postsError);
             }
           }
         } else {
@@ -500,8 +528,8 @@ const Profile = () => {
             sx={{ borderBottom: 1, borderColor: "divider" }}
           >
             <Tab label="Posts" />
+            <Tab label="Health Profile" icon={<HealthAndSafetyIcon />} />
             <Tab label="Liked Posts" />
-            <Tab label="Comments" />
           </Tabs>
 
           <TabPanel value={tabValue} index={0}>
@@ -509,17 +537,13 @@ const Profile = () => {
           </TabPanel>
 
           <TabPanel value={tabValue} index={1}>
-            <Box sx={{ textAlign: "center", py: 4 }}>
-              <Typography variant="h6" color="text.secondary">
-                Liked posts will appear here
-              </Typography>
-            </Box>
+            <HealthProfile username={username} />
           </TabPanel>
 
           <TabPanel value={tabValue} index={2}>
             <Box sx={{ textAlign: "center", py: 4 }}>
               <Typography variant="h6" color="text.secondary">
-                Comments will appear here
+                Liked posts will appear here
               </Typography>
             </Box>
           </TabPanel>

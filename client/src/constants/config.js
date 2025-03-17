@@ -46,5 +46,5 @@ export const SERVICE_URLS = {
   searchPosts: { url: "/posts/search", method: "GET", params: true },
   getUserProfile: { url: "/user", method: "GET", query: true },
   updateUserProfile: { url: "/user", method: "PUT", query: true },
-  getUserStats: { url: "/user/stats", method: "GET", query: true },
+  getUserStats: { url: "/user", method: "GET", query: true, subPath: "stats" },
 };

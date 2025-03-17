@@ -7,7 +7,6 @@ import { useInView } from "react-intersection-observer";
 import { useLocation } from "react-router-dom";
 
 const POSTS_PER_PAGE = 9;
-const INITIAL_SKELETON_COUNT = 6;
 
 const Posts = () => {
   const location = useLocation();
@@ -45,9 +44,6 @@ const Posts = () => {
         setLoading(true);
         setError(null);
 
-        // Add artificial delay for smoother loading experience
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-
         // Only include category in the query if it's not empty
         const queryParams = {
           page: pageNum,
@@ -63,36 +59,54 @@ const Posts = () => {
 
         if (!mountedRef.current) return;
 
-        if (response.isSuccess) {
-          const { data, totalPages: total } = response.data;
-          console.log("Received posts:", data);
-          setTotalPages(total);
+        if (response && response.isSuccess) {
+          // Handle the response data
+          const responseData = response.data || {};
 
-          // No need for client-side filtering as server now handles it
-          let filteredData = data;
+          // Extract posts array with fallback to empty array
+          let postsData = [];
+          if (responseData.posts && Array.isArray(responseData.posts)) {
+            postsData = responseData.posts;
+          } else if (Array.isArray(responseData)) {
+            postsData = responseData;
+          }
+
+          // Extract pagination data with fallbacks
+          const paginationData = responseData.pagination || {};
+          const totalPagesCount = paginationData.pages || 1;
+
+          console.log("Processed posts data:", postsData);
+          setTotalPages(totalPagesCount);
 
           if (pageNum === 1) {
-            setPosts(filteredData);
+            setPosts(postsData);
           } else {
             setPosts((prevPosts) => {
-              const newPosts = filteredData.filter(
+              // Ensure prevPosts is an array
+              const prevPostsArray = Array.isArray(prevPosts) ? prevPosts : [];
+
+              // Filter out duplicates
+              const newPosts = postsData.filter(
                 (newPost) =>
-                  !prevPosts.some(
+                  !prevPostsArray.some(
                     (existingPost) => existingPost._id === newPost._id
                   )
               );
-              return [...prevPosts, ...newPosts];
+              return [...prevPostsArray, ...newPosts];
             });
           }
-          setHasMore(pageNum < total);
+          setHasMore(pageNum < totalPagesCount);
         } else {
-          setError(response.msg || "No posts found");
+          console.error("API response error:", response);
+          setError(response?.msg || "Failed to load posts");
+          setPosts([]);
           setHasMore(false);
         }
       } catch (err) {
         if (!mountedRef.current) return;
         console.error("Error fetching posts:", err);
-        setError(err.msg || "Failed to load posts. Please try again later.");
+        setError(err?.msg || "Failed to load posts. Please try again later.");
+        setPosts([]);
         setHasMore(false);
       } finally {
         if (mountedRef.current) {
@@ -143,6 +157,9 @@ const Posts = () => {
     </Grid>
   );
 
+  // Ensure posts is always an array
+  const safePosts = Array.isArray(posts) ? posts : [];
+
   if (error) {
     return (
       <Box sx={{ textAlign: "center", py: 4 }}>
@@ -164,21 +181,22 @@ const Posts = () => {
       {initialLoading ? (
         // Show skeleton loading for initial load
         renderSkeletons(4)
-      ) : posts.length === 0 ? (
+      ) : safePosts.length === 0 ? (
         <Box sx={{ textAlign: "center", py: 4 }}>
           <Typography variant="h6">
-            No posts found for category "{selectedCategory}"
+            No posts found{" "}
+            {selectedCategory ? `for category "${selectedCategory}"` : ""}
           </Typography>
         </Box>
       ) : (
         <>
           <Grid container spacing={3}>
-            {posts.map((post) => (
+            {safePosts.map((post, index) => (
               <Grid
                 item
                 xs={12}
                 sm={6}
-                key={`${post._id}-${post.createdDate}`}
+                key={`${post._id || index}-${Date.now()}-${index}`}
                 sx={{ minHeight: 600 }}
               >
                 <AnimatedPostCard post={post} />

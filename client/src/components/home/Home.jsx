@@ -7,24 +7,30 @@ import {
   Paper,
   Divider,
   Chip,
+  Tabs,
+  Tab,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
-import { Suspense, lazy, useState, useEffect } from "react";
+import { Suspense, lazy, useState, useEffect, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 
 //components
 import Banner from "../banner/Banner";
-import Posts from "./post/Posts";
+import PostsList from "./post/PostsList";
 import ParallaxSection from "../animations/ParallaxSection";
 import ScrollAnimation from "../animations/ScrollAnimation";
 import HoverCard from "../animations/HoverCard";
 import SearchBar from "./SearchBar";
+import AIRecommendations from "./recommendations/AIRecommendations";
+import { DataContext } from "../../context/DataProvider";
 
 // Icons
 import TrendingUpIcon from "@mui/icons-material/TrendingUp";
 import WhatshotIcon from "@mui/icons-material/Whatshot";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
+import SmartToyIcon from "@mui/icons-material/SmartToy";
+import ExploreIcon from "@mui/icons-material/Explore";
 
 const StyledContainer = styled(Container)(({ theme }) => ({
   padding: theme.spacing(6, 0),
@@ -182,9 +188,31 @@ const LoadingFallback = () => (
   </Box>
 );
 
+// Tab Panel Component
+const TabPanel = (props) => {
+  const { children, value, index, ...other } = props;
+
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`tabpanel-${index}`}
+      aria-labelledby={`tab-${index}`}
+      {...other}
+    >
+      {value === index && <Box>{children}</Box>}
+    </div>
+  );
+};
+
 const Home = () => {
   const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
+  const [tabValue, setTabValue] = useState(0);
+  const { account } = useContext(DataContext);
+  const [isAuthenticated, setIsAuthenticated] = useState(
+    !!sessionStorage.getItem("accessToken")
+  );
 
   useEffect(() => {
     const handleScroll = () => {
@@ -195,10 +223,19 @@ const Home = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Check authentication status when account changes
+  useEffect(() => {
+    setIsAuthenticated(!!sessionStorage.getItem("accessToken"));
+  }, [account]);
+
   const handleSearch = (selectedPost) => {
     if (selectedPost) {
       navigate(`/details/${selectedPost._id}`);
     }
+  };
+
+  const handleTabChange = (event, newValue) => {
+    setTabValue(newValue);
   };
 
   return (
@@ -246,7 +283,29 @@ const Home = () => {
         <BackgroundDecoration />
         <ContentWrapper>
           <ScrollAnimation direction="up" delay={0.4}>
-            <SectionTitle variant="h2">Explore Our Latest Posts</SectionTitle>
+            {isAuthenticated && account.username ? (
+              <Paper sx={{ mb: 4, borderRadius: 2, overflow: "hidden" }}>
+                <Tabs
+                  value={tabValue}
+                  onChange={handleTabChange}
+                  variant="fullWidth"
+                  sx={{ borderBottom: 1, borderColor: "divider" }}
+                >
+                  <Tab
+                    icon={<ExploreIcon />}
+                    label="Explore"
+                    iconPosition="start"
+                  />
+                  <Tab
+                    icon={<SmartToyIcon />}
+                    label="AI Recommendations"
+                    iconPosition="start"
+                  />
+                </Tabs>
+              </Paper>
+            ) : (
+              <SectionTitle variant="h2">Explore Our Latest Posts</SectionTitle>
+            )}
           </ScrollAnimation>
 
           <Box sx={{ position: "relative", zIndex: 2 }}>
@@ -278,144 +337,307 @@ const Home = () => {
             </Grid>
           </Box>
 
-          <Grid container spacing={4} sx={{ mt: 4 }}>
-            <Grid item xs={12}>
-              <ScrollAnimation direction="up" delay={0.6}>
-                <Box sx={{ position: "relative", mb: 6, mt: 2 }}>
-                  <FeaturedChip
-                    label="Featured Content"
-                    color="primary"
-                    icon={<WhatshotIcon />}
-                  />
-                  <Paper
-                    elevation={3}
-                    sx={{
-                      borderRadius: 4,
-                      overflow: "hidden",
-                      border: "1px solid",
-                      borderColor: "divider",
-                    }}
-                  >
-                    <Grid container>
-                      <Grid item xs={12} md={6}>
-                        <Box
-                          sx={{
-                            height: { xs: 200, md: "100%" },
-                            backgroundImage:
-                              "url(https://source.unsplash.com/random/600x400/?health)",
-                            backgroundSize: "cover",
-                            backgroundPosition: "center",
-                          }}
+          {isAuthenticated && account.username ? (
+            <>
+              <TabPanel value={tabValue} index={0}>
+                <Grid container spacing={4} sx={{ mt: 4 }}>
+                  <Grid item xs={12}>
+                    <ScrollAnimation direction="up" delay={0.6}>
+                      <Box sx={{ position: "relative", mb: 6, mt: 2 }}>
+                        <FeaturedChip
+                          label="Featured Content"
+                          color="primary"
+                          icon={<WhatshotIcon />}
                         />
-                      </Grid>
-                      <Grid item xs={12} md={6}>
-                        <Box sx={{ p: 4 }}>
-                          <Typography
-                            variant="overline"
-                            color="primary.main"
-                            fontWeight={600}
-                          >
-                            EDITOR'S PICK
-                          </Typography>
-                          <Typography
-                            variant="h4"
-                            sx={{ mt: 1, mb: 2, fontWeight: 700 }}
-                          >
-                            Discover the Latest Health Trends
-                          </Typography>
-                          <Typography
-                            variant="body1"
-                            color="text.secondary"
-                            sx={{ mb: 3 }}
-                          >
-                            Explore cutting-edge research and expert insights on
-                            maintaining optimal health in today's fast-paced
-                            world.
-                          </Typography>
-                          <Button
-                            variant="outlined"
-                            onClick={() => navigate("/details/featured")}
-                            sx={{
-                              borderRadius: 8,
-                              textTransform: "none",
-                              fontWeight: 600,
-                            }}
-                          >
-                            Read Article
-                          </Button>
-                        </Box>
-                      </Grid>
-                    </Grid>
-                  </Paper>
+                        <Paper
+                          elevation={3}
+                          sx={{
+                            borderRadius: 4,
+                            overflow: "hidden",
+                            border: "1px solid",
+                            borderColor: "divider",
+                          }}
+                        >
+                          <Grid container>
+                            <Grid item xs={12} md={6}>
+                              <Box
+                                sx={{
+                                  height: { xs: 200, md: "100%" },
+                                  backgroundImage:
+                                    "url(https://source.unsplash.com/random/600x400/?health)",
+                                  backgroundSize: "cover",
+                                  backgroundPosition: "center",
+                                }}
+                              />
+                            </Grid>
+                            <Grid item xs={12} md={6}>
+                              <Box sx={{ p: 4 }}>
+                                <Typography
+                                  variant="overline"
+                                  color="primary.main"
+                                  fontWeight={600}
+                                >
+                                  EDITOR'S PICK
+                                </Typography>
+                                <Typography
+                                  variant="h4"
+                                  sx={{ mt: 1, mb: 2, fontWeight: 700 }}
+                                >
+                                  Discover the Latest Health Trends
+                                </Typography>
+                                <Typography
+                                  variant="body1"
+                                  color="text.secondary"
+                                  sx={{ mb: 3 }}
+                                >
+                                  Explore cutting-edge research and expert
+                                  insights on maintaining optimal health in
+                                  today's fast-paced world.
+                                </Typography>
+                                <Button
+                                  variant="outlined"
+                                  onClick={() => navigate("/details/featured")}
+                                  sx={{
+                                    borderRadius: 8,
+                                    textTransform: "none",
+                                    fontWeight: 600,
+                                  }}
+                                >
+                                  Read Article
+                                </Button>
+                              </Box>
+                            </Grid>
+                          </Grid>
+                        </Paper>
+                      </Box>
+                    </ScrollAnimation>
+                  </Grid>
+                </Grid>
+
+                <Grid container spacing={4} sx={{ mb: 6 }}>
+                  <Grid item xs={12} md={4}>
+                    <ScrollAnimation direction="up" delay={0.2}>
+                      <FeatureCard>
+                        <IconWrapper>
+                          <TrendingUpIcon fontSize="large" />
+                        </IconWrapper>
+                        <Typography
+                          variant="h6"
+                          sx={{ mb: 1, fontWeight: 600 }}
+                        >
+                          Trending Topics
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          Stay updated with the most popular health discussions
+                          and breakthroughs happening right now.
+                        </Typography>
+                      </FeatureCard>
+                    </ScrollAnimation>
+                  </Grid>
+                  <Grid item xs={12} md={4}>
+                    <ScrollAnimation direction="up" delay={0.4}>
+                      <FeatureCard>
+                        <IconWrapper>
+                          <WhatshotIcon fontSize="large" />
+                        </IconWrapper>
+                        <Typography
+                          variant="h6"
+                          sx={{ mb: 1, fontWeight: 600 }}
+                        >
+                          Hot Discussions
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          Join vibrant conversations about health topics that
+                          matter to you and connect with like-minded
+                          individuals.
+                        </Typography>
+                      </FeatureCard>
+                    </ScrollAnimation>
+                  </Grid>
+                  <Grid item xs={12} md={4}>
+                    <ScrollAnimation direction="up" delay={0.6}>
+                      <FeatureCard>
+                        <IconWrapper>
+                          <AutoAwesomeIcon fontSize="large" />
+                        </IconWrapper>
+                        <Typography
+                          variant="h6"
+                          sx={{ mb: 1, fontWeight: 600 }}
+                        >
+                          Expert Insights
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          Learn from healthcare professionals and thought
+                          leaders sharing their knowledge and experiences.
+                        </Typography>
+                      </FeatureCard>
+                    </ScrollAnimation>
+                  </Grid>
+                </Grid>
+
+                <SectionDivider>
+                  <Chip label="LATEST POSTS" />
+                </SectionDivider>
+
+                <Grid container spacing={4}>
+                  <Grid item xs={12}>
+                    <ScrollAnimation direction="up" delay={0.8}>
+                      <Suspense fallback={<LoadingFallback />}>
+                        <PostsList />
+                      </Suspense>
+                    </ScrollAnimation>
+                  </Grid>
+                </Grid>
+              </TabPanel>
+
+              <TabPanel value={tabValue} index={1}>
+                <Box mt={4}>
+                  <AIRecommendations />
                 </Box>
-              </ScrollAnimation>
-            </Grid>
-          </Grid>
+              </TabPanel>
+            </>
+          ) : (
+            <>
+              <Grid container spacing={4} sx={{ mt: 4 }}>
+                <Grid item xs={12}>
+                  <ScrollAnimation direction="up" delay={0.6}>
+                    <Box sx={{ position: "relative", mb: 6, mt: 2 }}>
+                      <FeaturedChip
+                        label="Featured Content"
+                        color="primary"
+                        icon={<WhatshotIcon />}
+                      />
+                      <Paper
+                        elevation={3}
+                        sx={{
+                          borderRadius: 4,
+                          overflow: "hidden",
+                          border: "1px solid",
+                          borderColor: "divider",
+                        }}
+                      >
+                        <Grid container>
+                          <Grid item xs={12} md={6}>
+                            <Box
+                              sx={{
+                                height: { xs: 200, md: "100%" },
+                                backgroundImage:
+                                  "url(https://source.unsplash.com/random/600x400/?health)",
+                                backgroundSize: "cover",
+                                backgroundPosition: "center",
+                              }}
+                            />
+                          </Grid>
+                          <Grid item xs={12} md={6}>
+                            <Box sx={{ p: 4 }}>
+                              <Typography
+                                variant="overline"
+                                color="primary.main"
+                                fontWeight={600}
+                              >
+                                EDITOR'S PICK
+                              </Typography>
+                              <Typography
+                                variant="h4"
+                                sx={{ mt: 1, mb: 2, fontWeight: 700 }}
+                              >
+                                Discover the Latest Health Trends
+                              </Typography>
+                              <Typography
+                                variant="body1"
+                                color="text.secondary"
+                                sx={{ mb: 3 }}
+                              >
+                                Explore cutting-edge research and expert
+                                insights on maintaining optimal health in
+                                today's fast-paced world.
+                              </Typography>
+                              <Button
+                                variant="outlined"
+                                onClick={() => navigate("/details/featured")}
+                                sx={{
+                                  borderRadius: 8,
+                                  textTransform: "none",
+                                  fontWeight: 600,
+                                }}
+                              >
+                                Read Article
+                              </Button>
+                            </Box>
+                          </Grid>
+                        </Grid>
+                      </Paper>
+                    </Box>
+                  </ScrollAnimation>
+                </Grid>
+              </Grid>
 
-          <Grid container spacing={4} sx={{ mb: 6 }}>
-            <Grid item xs={12} md={4}>
-              <ScrollAnimation direction="up" delay={0.2}>
-                <FeatureCard>
-                  <IconWrapper>
-                    <TrendingUpIcon fontSize="large" />
-                  </IconWrapper>
-                  <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
-                    Trending Topics
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Stay updated with the most popular health discussions and
-                    breakthroughs happening right now.
-                  </Typography>
-                </FeatureCard>
-              </ScrollAnimation>
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <ScrollAnimation direction="up" delay={0.4}>
-                <FeatureCard>
-                  <IconWrapper>
-                    <WhatshotIcon fontSize="large" />
-                  </IconWrapper>
-                  <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
-                    Hot Discussions
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Join vibrant conversations about health topics that matter
-                    to you and connect with like-minded individuals.
-                  </Typography>
-                </FeatureCard>
-              </ScrollAnimation>
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <ScrollAnimation direction="up" delay={0.6}>
-                <FeatureCard>
-                  <IconWrapper>
-                    <AutoAwesomeIcon fontSize="large" />
-                  </IconWrapper>
-                  <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
-                    Expert Insights
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Learn from healthcare professionals and thought leaders
-                    sharing their knowledge and experiences.
-                  </Typography>
-                </FeatureCard>
-              </ScrollAnimation>
-            </Grid>
-          </Grid>
+              <Grid container spacing={4} sx={{ mb: 6 }}>
+                <Grid item xs={12} md={4}>
+                  <ScrollAnimation direction="up" delay={0.2}>
+                    <FeatureCard>
+                      <IconWrapper>
+                        <TrendingUpIcon fontSize="large" />
+                      </IconWrapper>
+                      <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
+                        Trending Topics
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Stay updated with the most popular health discussions
+                        and breakthroughs happening right now.
+                      </Typography>
+                    </FeatureCard>
+                  </ScrollAnimation>
+                </Grid>
+                <Grid item xs={12} md={4}>
+                  <ScrollAnimation direction="up" delay={0.4}>
+                    <FeatureCard>
+                      <IconWrapper>
+                        <WhatshotIcon fontSize="large" />
+                      </IconWrapper>
+                      <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
+                        Hot Discussions
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Join vibrant conversations about health topics that
+                        matter to you and connect with like-minded individuals.
+                      </Typography>
+                    </FeatureCard>
+                  </ScrollAnimation>
+                </Grid>
+                <Grid item xs={12} md={4}>
+                  <ScrollAnimation direction="up" delay={0.6}>
+                    <FeatureCard>
+                      <IconWrapper>
+                        <AutoAwesomeIcon fontSize="large" />
+                      </IconWrapper>
+                      <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
+                        Expert Insights
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Learn from healthcare professionals and thought leaders
+                        sharing their knowledge and experiences.
+                      </Typography>
+                    </FeatureCard>
+                  </ScrollAnimation>
+                </Grid>
+              </Grid>
 
-          <SectionDivider>
-            <Chip label="LATEST POSTS" />
-          </SectionDivider>
+              <SectionDivider>
+                <Chip label="LATEST POSTS" />
+              </SectionDivider>
 
-          <Grid container spacing={4}>
-            <Grid item xs={12}>
-              <ScrollAnimation direction="up" delay={0.8}>
-                <Suspense fallback={<LoadingFallback />}>
-                  <Posts />
-                </Suspense>
-              </ScrollAnimation>
-            </Grid>
-          </Grid>
+              <Grid container spacing={4}>
+                <Grid item xs={12}>
+                  <ScrollAnimation direction="up" delay={0.8}>
+                    <Suspense fallback={<LoadingFallback />}>
+                      <PostsList />
+                    </Suspense>
+                  </ScrollAnimation>
+                </Grid>
+              </Grid>
+            </>
+          )}
         </ContentWrapper>
       </StyledContainer>
 

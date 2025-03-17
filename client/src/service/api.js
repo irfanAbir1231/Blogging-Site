@@ -62,7 +62,12 @@ axiosInstance.interceptors.request.use(
         // Clear the data since we don't need to send a body for DELETE
         config.data = undefined;
       } else {
-        config.url = `${config.url}/${config.TYPE.query}`;
+        // Handle subPath if it exists
+        if (config.TYPE.subPath) {
+          config.url = `${config.url}/${config.TYPE.query}/${config.TYPE.subPath}`;
+        } else {
+          config.url = `${config.url}/${config.TYPE.query}`;
+        }
       }
     }
 
@@ -229,6 +234,62 @@ for (const [key, value] of Object.entries(SERVICE_URLS)) {
           },
           TYPE: getType(value, body),
         };
+
+        // Special handling for getAllPosts to ensure proper data structure
+        if (key === "getAllPosts") {
+          try {
+            console.log(
+              "Making getAllPosts request with config:",
+              requestConfig
+            );
+            const response = await axiosInstance(requestConfig);
+            console.log("getAllPosts raw response:", response);
+
+            // Check if we have a valid response
+            if (response && response.data) {
+              // Ensure we have the correct data structure
+              return {
+                isSuccess: true,
+                data: {
+                  posts: response.data.posts || [],
+                  pagination: response.data.pagination || {
+                    total: 0,
+                    page: 1,
+                    pages: 1,
+                  },
+                },
+              };
+            }
+            return processResponse(response);
+          } catch (error) {
+            console.error("Error in getAllPosts:", error);
+            return ProcessError(error);
+          }
+        }
+
+        // Special handling for getUserStats to ensure proper error handling
+        if (key === "getUserStats") {
+          try {
+            console.log(
+              "Making getUserStats request with config:",
+              requestConfig
+            );
+            const response = await axiosInstance(requestConfig);
+            console.log("getUserStats raw response:", response);
+
+            // Check if we have a valid response
+            if (response && response.data) {
+              return {
+                isSuccess: true,
+                data: response.data.data || response.data,
+              };
+            }
+            return processResponse(response);
+          } catch (error) {
+            console.error("Error in getUserStats:", error);
+            return ProcessError(error);
+          }
+        }
 
         // For PUT and DELETE requests with query parameter
         if (

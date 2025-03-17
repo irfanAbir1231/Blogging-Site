@@ -20,6 +20,7 @@ import About from "./components/about/About";
 import Contact from "./components/contact/Contact";
 import Login from "./components/account/Login";
 import Profile from "./components/profile/Profile";
+import HealthProfile from "./components/profile/HealthProfile";
 
 const PrivateRoute = ({ isAuthenticated, ...props }) => {
   const token = sessionStorage.getItem("accessToken");
@@ -106,6 +107,13 @@ function App() {
                 element={<PrivateRoute isAuthenticated={isAuthenticated} />}
               >
                 <Route path="/profile/:username" element={<Profile />} />
+              </Route>
+
+              <Route
+                path="/profile/health/:username"
+                element={<PrivateRoute isAuthenticated={isAuthenticated} />}
+              >
+                <Route path="/profile/health/:username" element={<HealthProfile />} />
               </Route>
             </Routes>
           </Box>

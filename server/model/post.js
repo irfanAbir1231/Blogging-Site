@@ -52,6 +52,66 @@ const PostSchema = mongoose.Schema({
 // Create a compound index for title and username to allow same titles for different users
 PostSchema.index({ title: 1, username: 1 }, { unique: true });
 
+// Add text indexes for search
+PostSchema.index({ 
+  title: 'text', 
+  description: 'text',
+  categories: 'text',
+  tags: 'text'
+});
+
+// Define common nutrition-related tags for suggestions
+PostSchema.statics.NUTRITION_TAGS = [
+  'nutritious',
+  'healthy-eating',
+  'diet',
+  'protein',
+  'vegetables',
+  'fruits',
+  'meal-planning',
+  'recipes',
+  'balanced-diet',
+  'vitamins',
+  'minerals',
+  'whole-foods',
+  'organic',
+  'plant-based'
+];
+
+// Method to check if post is nutrition-related
+PostSchema.methods.isNutritiousPost = function() {
+  const nutritionKeywords = [
+    "nutrition", "nutritious", "food", "diet", "eating", "meal", 
+    "recipe", "healthy", "vegetable", "fruit", "protein"
+  ];
+  
+  // Check tags
+  const hasTags = this.tags && this.tags.some(tag => 
+    nutritionKeywords.some(keyword => 
+      tag.toLowerCase().includes(keyword.toLowerCase())
+    )
+  );
+  
+  // Check categories
+  const hasCategories = this.categories && 
+    nutritionKeywords.some(keyword => 
+      this.categories.toLowerCase().includes(keyword.toLowerCase())
+    );
+  
+  // Check title and description
+  const hasTitle = this.title && 
+    nutritionKeywords.some(keyword => 
+      this.title.toLowerCase().includes(keyword.toLowerCase())
+    );
+  
+  const hasDescription = this.description && 
+    nutritionKeywords.some(keyword => 
+      this.description.toLowerCase().includes(keyword.toLowerCase())
+    );
+  
+  return hasTags || hasCategories || hasTitle || hasDescription;
+};
+
 const post = mongoose.model("post", PostSchema);
 
 export default post;

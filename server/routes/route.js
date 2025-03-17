@@ -35,6 +35,12 @@ import {
   authenticateToken,
   createNewToken,
 } from "../controller/jwt-controller.js";
+import {
+  updateHealthProfile,
+  getHealthProfile,
+  getHealthRecommendations,
+  analyzeHealthData,
+} from "../controller/health-controller.js";
 
 import upload from "../utils/upload.js";
 
@@ -57,6 +63,16 @@ router.get("/posts/search", authenticateToken, searchPosts);
 router.get("/user/:username", authenticateToken, getUserProfile);
 router.put("/user/:username", authenticateToken, updateUserProfile);
 router.get("/user/:username/stats", authenticateToken, getUserStats);
+
+// Health profile routes
+router.post("/health/profile", authenticateToken, updateHealthProfile);
+router.get("/health/profile/:username", authenticateToken, getHealthProfile);
+router.get(
+  "/health/recommendations/:username",
+  authenticateToken,
+  getHealthRecommendations
+);
+router.post("/health/analyze", authenticateToken, analyzeHealthData);
 
 router.post("/file/upload", upload.single("file"), uploadImage);
 router.get("/file/:filename", getImage);
