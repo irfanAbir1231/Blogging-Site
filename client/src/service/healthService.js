@@ -20,30 +20,27 @@ export const getHealthProfile = async (username) => {
       };
     }
 
-    const response = await axios.get(`${API_URL}/health/profile/${username}`, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
-    return response.data;
-  } catch (error) {
-    console.error("Error fetching health profile:", error);
-    if (error.response && error.response.status === 404) {
-      // If profile not found, create a new one
-      try {
-        const newProfile = await updateHealthProfile({
-          username,
-          conditions: [],
-          goals: [],
-          currentStatus: "",
-        });
-        return newProfile.profile;
-      } catch (createError) {
-        console.error("Error creating health profile:", createError);
-      }
+    // Try to get profile from local storage first
+    const storedProfile = localStorage.getItem(`health_profile_${username}`);
+    if (storedProfile) {
+      return JSON.parse(storedProfile);
     }
 
-    // For other errors, return a default profile
+    // If not in local storage, return default profile
+    const defaultProfile = {
+      username,
+      conditions: [],
+      goals: [],
+      currentStatus: "",
+      history: [],
+    };
+
+    // Save to local storage
+    localStorage.setItem(`health_profile_${username}`, JSON.stringify(defaultProfile));
+    return defaultProfile;
+  } catch (error) {
+    console.error("Error fetching health profile:", error);
+    // For errors, return a default profile
     return {
       username,
       conditions: [],
@@ -62,33 +59,58 @@ export const updateHealthProfile = async (data) => {
       throw new Error("No access token found");
     }
 
-    const response = await axios.put(
-      `${API_URL}/health/profile/${data.username}`,
-      data,
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      }
-    );
+    // Get existing profile from local storage
+    const storedProfile = localStorage.getItem(`health_profile_${data.username}`);
+    let profile = storedProfile ? JSON.parse(storedProfile) : { 
+      username: data.username,
+      conditions: [],
+      goals: [],
+      currentStatus: "",
+      history: []
+    };
 
-    if (response.data?.error) {
-      throw new Error(response.data.error);
-    }
+    // Update with new data
+    profile = { 
+      ...profile,
+      ...data,
+      conditions: data.conditions || profile.conditions || [],
+      goals: data.goals || profile.goals || [],
+      history: data.history || profile.history || []
+    };
 
-    return response.data;
+    // Save to local storage
+    localStorage.setItem(`health_profile_${data.username}`, JSON.stringify(profile));
+
+    return { profile };
   } catch (error) {
     console.error("Error updating health profile:", error);
     throw error;
   }
 };
 
-// Mock analysis function until backend is ready
+// Mock analysis function with improved category matching
 const mockAnalyzeText = (text) => {
+  if (!text) return [];
+  
   const lowercaseText = text.toLowerCase();
-  return categories.filter(cat => 
-    lowercaseText.includes(cat.type.toLowerCase())
-  ).map(cat => cat.type);
+  const categoryKeywords = {
+    'Nutrition': ['food', 'diet', 'eating', 'nutrition', 'meal', 'vitamin', 'protein', 'carbs', 'fat', 'weight'],
+    'Mental Health': ['stress', 'anxiety', 'depression', 'mental', 'mood', 'therapy', 'emotional', 'psychological', 'meditation', 'mindfulness'],
+    'Exercise': ['workout', 'exercise', 'fitness', 'training', 'gym', 'cardio', 'strength', 'running', 'sports', 'physical activity'],
+    'Chronic Diseases': ['diabetes', 'hypertension', 'asthma', 'arthritis', 'heart disease', 'chronic', 'condition', 'blood pressure', 'cholesterol']
+  };
+
+  // Only return exact categories that are in the data.js file
+  return categories
+    .filter(cat => {
+      // Skip "Healthy Living" category as specified
+      if (cat.type === "Healthy Living") return false;
+      
+      // Match against keywords for this category
+      const keywords = categoryKeywords[cat.type];
+      return keywords && keywords.some(keyword => lowercaseText.includes(keyword));
+    })
+    .map(cat => cat.type);
 };
 
 // Analyze current health status
@@ -167,38 +189,43 @@ export const getHealthRecommendations = async (username) => {
     }
 
     console.log("Fetching recommendations for user:", username);
-    const response = await axios.get(
-      `${API_URL}/health/recommendations/${username}`,
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      }
-    );
+    
+    // Use the existing API to get all posts
+    const postsResponse = await API.getAllPosts({
+      limit: 50  // Get more posts to have a good selection
+    });
 
-    // Mock recommendations until backend is ready
-    const mockRecommendations = [
-      {
-        id: 1,
-        title: "Healthy Eating Tips",
-        description: "Learn about balanced nutrition...",
-        categories: ["Nutrition"]
-      },
-      {
-        id: 2,
-        title: "Mental Wellness Guide",
-        description: "Strategies for mental health...",
-        categories: ["Mental Health"]
-      },
-      {
-        id: 3,
-        title: "Exercise Fundamentals",
-        description: "Basic workout routines...",
-        categories: ["Exercise"]
-      }
-    ];
+    if (!postsResponse || !postsResponse.isSuccess) {
+      console.log("Error fetching posts:", postsResponse);
+      return [];
+    }
 
-    return mockRecommendations;
+    // Extract posts from the response, handling different response formats
+    let posts = [];
+    if (postsResponse.data?.posts && Array.isArray(postsResponse.data.posts)) {
+      posts = postsResponse.data.posts;
+    } else if (Array.isArray(postsResponse.data)) {
+      posts = postsResponse.data;
+    }
+
+    if (!posts.length) {
+      return [];
+    }
+
+    // Transform posts to include categories based on content
+    const postsWithCategories = posts.map(post => {
+      const titleCategories = mockAnalyzeText(post.title || '');
+      const descriptionCategories = mockAnalyzeText(post.description || '');
+      const allCategories = [...new Set([...titleCategories, ...descriptionCategories])];
+      
+      return {
+        ...post,
+        categories: allCategories
+      };
+    });
+
+    return postsWithCategories.filter(post => post.categories.length > 0);
+
   } catch (error) {
     console.error("Error fetching health recommendations:", error);
     return [];

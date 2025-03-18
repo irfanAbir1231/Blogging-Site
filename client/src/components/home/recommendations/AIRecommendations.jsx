@@ -149,19 +149,48 @@ const AIRecommendations = () => {
       const profile = await getHealthProfile(username);
       
       // Analyze all health data to get relevant categories
-      const [statusAnalysis, conditionsAnalysis, goalsAnalysis] = await Promise.all([
-        analyzeHealthStatus(username, profile.currentStatus || ""),
-        Promise.all((profile.conditions || []).map(c => analyzeHealthCondition(username, c))),
-        analyzeHealthGoals(username, profile.goals || [])
-      ]);
+      let statusCategories = [];
+      let conditionsCategories = [];
+      let goalsCategories = [];
+      
+      try {
+        if (profile.currentStatus) {
+          const analysis = await analyzeHealthStatus(username, profile.currentStatus);
+          statusCategories = analysis.categories || [];
+        }
+      } catch (err) {
+        console.warn('Error analyzing status:', err);
+      }
+      
+      try {
+        if (profile.conditions && profile.conditions.length > 0) {
+          const conditionsResults = await Promise.all(
+            profile.conditions.map(c => analyzeHealthCondition(username, c))
+          );
+          conditionsCategories = conditionsResults.flatMap(a => a?.categories || []);
+        }
+      } catch (err) {
+        console.warn('Error analyzing conditions:', err);
+      }
+      
+      try {
+        if (profile.goals && profile.goals.length > 0) {
+          const analysis = await analyzeHealthGoals(username, profile.goals);
+          goalsCategories = analysis.categories || [];
+        }
+      } catch (err) {
+        console.warn('Error analyzing goals:', err);
+      }
 
       // Combine all categories from different analyses
       const allCategories = new Set([
-        ...(statusAnalysis?.categories || []),
-        ...conditionsAnalysis.flatMap(a => a?.categories || []),
-        ...(goalsAnalysis?.categories || [])
+        ...statusCategories,
+        ...conditionsCategories,
+        ...goalsCategories
       ]);
 
+      console.log('Matched categories from health profile:', [...allCategories]);
+      
       // Get recommendations based on categories
       const data = await getHealthRecommendations(username);
       console.log("Recommendations data:", data);
@@ -170,11 +199,16 @@ const AIRecommendations = () => {
         // Filter recommendations to only show posts that match the user's categories
         const filteredRecommendations = data.filter(rec => {
           const recCategories = rec?.categories || [];
-          return recCategories.some(cat => allCategories.has(cat));
+          const hasMatchingCategory = recCategories.some(cat => allCategories.has(cat));
+          if (hasMatchingCategory) {
+            // Add matchedCategories to each post for display
+            rec.matchedCategories = recCategories.filter(cat => allCategories.has(cat));
+          }
+          return hasMatchingCategory;
         });
 
         setRecommendations(filteredRecommendations);
-        setMatchedCategories([...allCategories]);
+        setMatchedCategories([...allCategories].sort());
         setError(filteredRecommendations.length === 0 ? 
           "No matching recommendations found. Try updating your health profile with more details." : "");
       } else {
@@ -263,18 +297,34 @@ const AIRecommendations = () => {
                 Showing posts from these categories:
               </Typography>
               <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
-                {matchedCategories.map((category) => (
-                  <Chip
-                    key={category}
-                    label={category}
-                    color="primary"
-                    sx={{ 
-                      borderRadius: 3,
-                      px: 1,
-                      fontWeight: 500
-                    }}
-                  />
-                ))}
+                {matchedCategories.map((category) => {
+                  // Determine icon based on category name
+                  let icon;
+                  if (category === "Nutrition") {
+                    icon = <RestaurantIcon fontSize="small" />;
+                  } else if (category === "Mental Health") {
+                    icon = <HealthAndSafetyIcon fontSize="small" />;
+                  } else if (category === "Exercise") {
+                    icon = <FitnessCenterIcon fontSize="small" />;
+                  } else {
+                    icon = <FilterAltIcon fontSize="small" />;
+                  }
+                  
+                  return (
+                    <Chip
+                      key={category}
+                      label={category}
+                      icon={icon}
+                      color="primary"
+                      variant="outlined"
+                      sx={{ 
+                        borderRadius: 3,
+                        px: 1,
+                        fontWeight: 500
+                      }}
+                    />
+                  );
+                })}
               </Box>
             </Box>
           )}
@@ -311,19 +361,36 @@ const AIRecommendations = () => {
                         : post.description}
                     </PostDescription>
                     <Box sx={{ mt: 2 }}>
-                      {post.matchedCategories?.map(category => (
-                        <Chip
-                          key={category}
-                          label={category}
-                          size="small"
-                          sx={{ 
-                            mr: 1,
-                            mb: 1,
-                            backgroundColor: theme => `${theme.palette.secondary.main}22`,
-                            color: theme => theme.palette.secondary.dark,
-                          }}
-                        />
-                      ))}
+                      {post.matchedCategories?.map(category => {
+                        // Determine icon based on category name
+                        let icon;
+                        if (category === "Nutrition") {
+                          icon = <RestaurantIcon fontSize="small" />;
+                        } else if (category === "Mental Health") {
+                          icon = <HealthAndSafetyIcon fontSize="small" />;
+                        } else if (category === "Exercise") {
+                          icon = <FitnessCenterIcon fontSize="small" />;
+                        } else {
+                          icon = <FilterAltIcon fontSize="small" />;
+                        }
+                        
+                        return (
+                          <Chip
+                            key={category}
+                            label={category}
+                            size="small"
+                            icon={icon}
+                            variant="outlined"
+                            sx={{ 
+                              mr: 1,
+                              mb: 1,
+                              backgroundColor: theme => `${theme.palette.secondary.main}22`,
+                              color: theme => theme.palette.secondary.dark,
+                              borderColor: theme => theme.palette.secondary.light,
+                            }}
+                          />
+                        );
+                      })}
                     </Box>
                     <MetaInfo>
                       <MetaText>
