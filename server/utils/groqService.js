@@ -11,59 +11,14 @@ const groq = new Groq({
  * Get content recommendations based on user health profile and post history
  * @param {Object} healthProfile - User's health profile
  * @param {Array} posts - Available posts
- * @param {Boolean} hasNutritionInterest - Whether user has nutrition interest
  * @returns {Array} - Recommended post IDs with reasoning
  */
-export const getRecommendations = async (
-  healthProfile,
-  posts,
-  hasNutritionInterest = false
-) => {
+export const getRecommendations = async (healthProfile, posts) => {
   try {
     if (!healthProfile || !posts || posts.length === 0) {
       console.log("No health profile or posts available");
       return [];
     }
-
-    console.log("Getting recommendations for profile:", {
-      conditions: healthProfile.conditions,
-      goals: healthProfile.goals,
-      status: healthProfile.currentStatus
-    });
-
-    // Function to check if a post is nutrition-related
-    const isNutritiousPost = (post) => {
-      const nutritionKeywords = [
-        "nutrition", "nutritious", "food", "diet", "eating", "meal", 
-        "recipe", "healthy", "vegetable", "fruit", "protein"
-      ];
-      
-      // Check tags
-      const hasTags = post.tags && post.tags.some(tag => 
-        nutritionKeywords.some(keyword => 
-          tag.toLowerCase().includes(keyword.toLowerCase())
-        )
-      );
-      
-      // Check categories
-      const hasCategories = post.categories && 
-        nutritionKeywords.some(keyword => 
-          post.categories.toLowerCase().includes(keyword.toLowerCase())
-        );
-      
-      // Check title and description
-      const hasTitle = post.title && 
-        nutritionKeywords.some(keyword => 
-          post.title.toLowerCase().includes(keyword.toLowerCase())
-        );
-      
-      const hasDescription = post.description && 
-        nutritionKeywords.some(keyword => 
-          post.description.toLowerCase().includes(keyword.toLowerCase())
-        );
-      
-      return hasTags || hasCategories || hasTitle || hasDescription;
-    };
 
     // Get relevant categories from GROQ
     const relevantCategories = await getRelevantCategories(healthProfile);
@@ -74,119 +29,44 @@ export const getRecommendations = async (
       return [];
     }
 
-    // Filter and score posts based on relevance
-    const scoredPosts = posts.map(post => {
-      let score = 0;
-      let reasons = [];
-
-      // Check if post matches relevant categories
-      if (post.categories) {
-        const postCategory = post.categories.toLowerCase();
-        relevantCategories.forEach(category => {
-          if (postCategory.includes(category.toLowerCase())) {
-            score += 40;
-            reasons.push(`Matches category: ${category}`);
-          }
-        });
-      }
-
-      // Check post tags
-      if (post.tags && post.tags.length > 0) {
-        const matchingTags = post.tags.filter(tag => 
+    // Filter posts that have matching tags or categories
+    const recommendations = posts
+      .map(post => {
+        // Check if post has any matching tags
+        const hasMatchingTags = post.tags && post.tags.some(tag =>
           relevantCategories.some(category => 
             tag.toLowerCase().includes(category.toLowerCase())
           )
         );
-        if (matchingTags.length > 0) {
-          score += 20 * matchingTags.length;
-          reasons.push(`Relevant tags: ${matchingTags.join(", ")}`);
+
+        // Check if post has matching category
+        const hasMatchingCategory = post.categories && 
+          relevantCategories.some(category =>
+            post.categories.toLowerCase().includes(category.toLowerCase())
+          );
+
+        // Only include posts with matching tags or category
+        if (hasMatchingTags || hasMatchingCategory) {
+          const matchedCategories = relevantCategories.filter(category => {
+            const matchesTag = post.tags && post.tags.some(tag =>
+              tag.toLowerCase().includes(category.toLowerCase())
+            );
+            const matchesCategory = post.categories && 
+              post.categories.toLowerCase().includes(category.toLowerCase());
+            return matchesTag || matchesCategory;
+          });
+
+          return {
+            ...post.toObject(),
+            relevanceScore: 100, // All matching posts get same score
+            reasoning: `Post tagged with relevant categories: ${matchedCategories.join(", ")}`,
+            matchedCategories
+          };
         }
-      }
-
-      // Check title and description for category matches
-      relevantCategories.forEach(category => {
-        if (post.title && post.title.toLowerCase().includes(category.toLowerCase())) {
-          score += 15;
-          reasons.push(`Title matches ${category}`);
-        }
-        if (post.description && post.description.toLowerCase().includes(category.toLowerCase())) {
-          score += 10;
-          reasons.push(`Content related to ${category}`);
-        }
-      });
-
-      // Check if post matches user's conditions
-      if (healthProfile.conditions && healthProfile.conditions.length > 0) {
-        healthProfile.conditions.forEach(condition => {
-          if (condition && post.title && post.title.toLowerCase().includes(condition.toLowerCase())) {
-            score += 30;
-            reasons.push(`Matches health condition: ${condition}`);
-          }
-          if (condition && post.description && post.description.toLowerCase().includes(condition.toLowerCase())) {
-            score += 20;
-            reasons.push(`Content related to condition: ${condition}`);
-          }
-        });
-      }
-
-      // Check if post matches user's goals
-      if (healthProfile.goals && healthProfile.goals.length > 0) {
-        healthProfile.goals.forEach(goal => {
-          if (goal && post.title && post.title.toLowerCase().includes(goal.toLowerCase())) {
-            score += 25;
-            reasons.push(`Matches health goal: ${goal}`);
-          }
-          if (goal && post.description && post.description.toLowerCase().includes(goal.toLowerCase())) {
-            score += 15;
-            reasons.push(`Content related to goal: ${goal}`);
-          }
-        });
-      }
-
-      // Check if post is nutrition-related when user has nutrition interest
-      if (hasNutritionInterest && isNutritiousPost(post)) {
-        score += 35;
-        reasons.push("Matches nutrition interest");
-      }
-
-      // Boost recent posts slightly
-      const postAge = Date.now() - new Date(post.createdDate).getTime();
-      const daysOld = postAge / (1000 * 60 * 60 * 24);
-      if (daysOld < 7) {
-        score += 10;
-        reasons.push("Recent post");
-      }
-
-      // Always give some base score for nutrition-related posts
-      if (isNutritiousPost(post)) {
-        score += 15;
-        if (!reasons.includes("Nutrition-related content")) {
-          reasons.push("Nutrition-related content");
-        }
-      }
-
-      // Check current status for nutrition interest
-      if (healthProfile.currentStatus && 
-          healthProfile.currentStatus.toLowerCase().includes("nutritious") &&
-          isNutritiousPost(post)) {
-        score += 25;
-        reasons.push("Matches current nutrition interest");
-      }
-
-      return {
-        ...post.toObject(),
-        relevanceScore: score,
-        reasoning: reasons.join(". "),
-        matchedCategories: relevantCategories,
-        isNutritious: isNutritiousPost(post)
-      };
-    });
-
-    // Filter posts with some relevance and sort by score
-    const recommendations = scoredPosts
-      .filter(post => post.relevanceScore > 0)
-      .sort((a, b) => b.relevanceScore - a.relevanceScore)
-      .slice(0, 5);
+        return null;
+      })
+      .filter(post => post !== null) // Remove non-matching posts
+      .slice(0, 5); // Take top 5
 
     console.log(`Found ${recommendations.length} recommendations`);
     return recommendations;

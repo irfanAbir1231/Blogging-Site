@@ -29,6 +29,9 @@ import { useParams } from "react-router-dom";
 import {
   getHealthProfile,
   updateHealthProfile,
+  analyzeHealthStatus,
+  analyzeHealthCondition,
+  analyzeHealthGoals,
 } from "../../service/healthService";
 
 const StyledPaper = styled(Paper)(({ theme }) => ({
@@ -146,11 +149,79 @@ const HealthProfile = () => {
     setShowNutritionSuggestions(!hasNutritionGoal);
   };
 
+  const handleUpdateStatus = async () => {
+    if (!currentStatus.trim() || !isAuthenticated) return;
+
+    try {
+      setError("");
+      const statusText = currentStatus.trim();
+      
+      // First analyze the status
+      const analysis = await analyzeHealthStatus(username, statusText);
+      
+      const updatedProfile = {
+        username,
+        currentStatus: statusText,
+        history: [
+          ...(profile?.history || []),
+          {
+            status: statusText,
+            date: new Date().toISOString(),
+            categories: analysis.categories || []
+          }
+        ]
+      };
+
+      const response = await updateHealthProfile(updatedProfile);
+      
+      if (response?.profile) {
+        setProfile(response.profile);
+        setCurrentStatus("");
+        setStatusUpdated(true);
+        setTimeout(() => setStatusUpdated(false), 3000);
+      } else {
+        throw new Error("Invalid response format");
+      }
+    } catch (err) {
+      console.error("Error updating health status:", err);
+      setError("Failed to update status. Please try again.");
+    }
+  };
+
+  const handleRemoveCondition = async (condition) => {
+    if (!isAuthenticated) return;
+
+    try {
+      setError("");
+      const updatedConditions = profile.conditions.filter((c) => c !== condition);
+      
+      // First analyze the removal
+      await analyzeHealthCondition(username, condition, true);
+      
+      const response = await updateHealthProfile({
+        username,
+        conditions: updatedConditions,
+      });
+
+      if (response && response.profile) {
+        setProfile(response.profile);
+      } else {
+        throw new Error("Invalid response from server");
+      }
+    } catch (err) {
+      console.error("Error removing health condition:", err);
+      setError("Failed to remove health condition. Please try again.");
+    }
+  };
+
   const handleAddCondition = async () => {
     if (!newCondition.trim() || !isAuthenticated) return;
 
     try {
       setError("");
+      // First analyze the new condition
+      await analyzeHealthCondition(username, newCondition.trim());
+      
       const updatedConditions = [
         ...(profile?.conditions || []),
         newCondition.trim(),
@@ -178,6 +249,10 @@ const HealthProfile = () => {
     try {
       setError("");
       const updatedGoals = [...(profile?.goals || []), newGoal.trim()];
+      
+      // Analyze goals
+      await analyzeHealthGoals(username, updatedGoals);
+      
       const response = await updateHealthProfile({
         username,
         goals: updatedGoals,
@@ -186,78 +261,12 @@ const HealthProfile = () => {
       if (response && response.profile) {
         setProfile(response.profile);
         setNewGoal("");
-
-        // Check if we should still show nutrition suggestions
-        checkForNutritionGoals(response.profile);
       } else {
         throw new Error("Invalid response from server");
       }
     } catch (err) {
       console.error("Error updating health goal:", err);
       setError("Failed to update health goal. Please try again.");
-    }
-  };
-
-  const handleUpdateStatus = async () => {
-    if (!currentStatus.trim() || !isAuthenticated) return;
-
-    try {
-      setError("");
-      // Replace 'notorious' with 'nutritious' if found in the status
-      const correctedStatus = currentStatus.trim().replace(/notorious/gi, 'nutritious');
-      
-      const response = await updateHealthProfile({
-        username,
-        currentStatus: correctedStatus,
-        history: [
-          {
-            condition: correctedStatus,
-            status: "active",
-            date: new Date(),
-          },
-        ],
-      });
-
-      if (response && response.profile) {
-        setProfile(response.profile);
-        setCurrentStatus("");
-        setStatusUpdated(true);
-
-        // Reset status updated message after 3 seconds
-        setTimeout(() => {
-          setStatusUpdated(false);
-        }, 3000);
-      } else {
-        throw new Error("Invalid response from server");
-      }
-    } catch (err) {
-      console.error("Error updating current status:", err);
-      setError("Failed to update current status. Please try again.");
-    }
-  };
-
-  const handleRemoveCondition = async (conditionToRemove) => {
-    if (!isAuthenticated) return;
-
-    try {
-      setError("");
-      const updatedConditions = profile.conditions.filter(
-        (condition) => condition !== conditionToRemove
-      );
-
-      const response = await updateHealthProfile({
-        username,
-        conditions: updatedConditions,
-      });
-
-      if (response && response.profile) {
-        setProfile(response.profile);
-      } else {
-        throw new Error("Invalid response from server");
-      }
-    } catch (err) {
-      console.error("Error removing health condition:", err);
-      setError("Failed to remove health condition. Please try again.");
     }
   };
 
@@ -270,6 +279,9 @@ const HealthProfile = () => {
         (goal) => goal !== goalToRemove
       );
 
+      // Analyze updated goals
+      await analyzeHealthGoals(username, updatedGoals);
+      
       const response = await updateHealthProfile({
         username,
         goals: updatedGoals,
@@ -625,7 +637,7 @@ const HealthProfile = () => {
             .map((item, index) => (
               <HistoryItem key={index}>
                 <Typography variant="body2" fontWeight="500">
-                  {item.condition}
+                  {item.status}
                 </Typography>
                 <Typography variant="caption" color="text.secondary">
                   {new Date(item.date).toLocaleString()}

@@ -102,6 +102,12 @@ export const getHealthRecommendations = async (request, response) => {
     const posts = await Post.find({}).populate("username", "name username");
     console.log("✓ Found posts:", posts.length);
 
+    // DEBUG: Log each post's category
+    console.log("\nPost Categories:");
+    posts.forEach(post => {
+      console.log(`- "${post.title}": category="${post.categories}", tags=${JSON.stringify(post.tags)}`);
+    });
+
     if (posts.length === 0) {
       console.log("❌ No posts available for recommendations");
       return response.status(200).json([]);
@@ -115,13 +121,18 @@ export const getHealthRecommendations = async (request, response) => {
     console.log("✓ GROQ API key found");
 
     // Get recommendations from AI
-    console.log("Getting AI recommendations...");
+    console.log("\nGetting AI recommendations...");
     const recommendations = await getRecommendations(profile, posts);
 
-    console.log("Got recommendations:", recommendations ? recommendations.length : 0);
-    if (recommendations.length > 0) {
-      console.log("Matched categories:", recommendations[0].matchedCategories);
-    }
+    console.log("\nRecommendation Details:");
+    recommendations.forEach(rec => {
+      console.log(`\n"${rec.title}":`);
+      console.log(`- Category: ${rec.categories}`);
+      console.log(`- Tags: ${rec.tags?.join(", ") || "none"}`);
+      console.log(`- Score: ${rec.relevanceScore}`);
+      console.log(`- Matched Categories: ${rec.matchedCategories?.join(", ")}`);
+      console.log(`- Reasoning: ${rec.reasoning}`);
+    });
 
     if (!recommendations || recommendations.length === 0) {
       console.log("❌ No recommendations returned from AI");

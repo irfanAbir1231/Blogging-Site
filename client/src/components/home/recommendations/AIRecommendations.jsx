@@ -15,8 +15,8 @@ import {
   IconButton,
   Card,
   CardContent,
-  CardMedia,
   Link,
+  Grid,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import SmartToyIcon from "@mui/icons-material/SmartToy";
@@ -25,112 +25,107 @@ import RestaurantIcon from "@mui/icons-material/Restaurant";
 import FilterAltIcon from "@mui/icons-material/FilterAlt";
 import InfoIcon from "@mui/icons-material/Info";
 import HealthAndSafetyIcon from "@mui/icons-material/HealthAndSafety";
+import PersonIcon from "@mui/icons-material/Person";
+import TimeIcon from "@mui/icons-material/AccessTime";
+import FitnessCenterIcon from "@mui/icons-material/FitnessCenter";
+import { formatDistanceToNow } from "date-fns";
+import { useNavigate } from "react-router-dom";
 import {
   getHealthRecommendations,
   analyzeHealthStatus,
+  analyzeHealthCondition,
+  analyzeHealthGoals,
   getHealthProfile,
   updateHealthProfile,
 } from "../../../service/healthService";
 
 const StyledPaper = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(3),
-  marginBottom: theme.spacing(3),
   borderRadius: theme.spacing(2),
-  boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
-}));
-
-const RecommendationItem = styled(Box)(({ theme, isNutritious }) => ({
-  padding: theme.spacing(2),
-  marginBottom: theme.spacing(2),
-  borderRadius: theme.spacing(1),
-  backgroundColor: isNutritious
-    ? theme.palette.success.light + "15"
-    : theme.palette.grey[50],
-  border: `1px solid ${
-    isNutritious ? theme.palette.success.light : theme.palette.grey[200]
-  }`,
-  transition: "transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out",
-  "&:hover": {
-    transform: "translateY(-2px)",
-    boxShadow: "0 6px 12px rgba(0, 0, 0, 0.1)",
-  },
-}));
-
-const FilterBar = styled(Box)(({ theme }) => ({
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "space-between",
-  marginBottom: theme.spacing(2),
-  padding: theme.spacing(1, 2),
   backgroundColor: theme.palette.background.paper,
-  borderRadius: theme.spacing(1),
-  border: `1px solid ${theme.palette.divider}`,
+  boxShadow: "0 2px 12px rgba(0,0,0,0.1)",
 }));
 
-const RecommendationsContainer = styled(Box)(({ theme }) => ({
-  marginBottom: theme.spacing(4),
-}));
-
-const RecommendationCard = styled(Card)(({ theme }) => ({
-  display: "flex",
-  marginBottom: theme.spacing(2),
-  borderRadius: theme.spacing(1),
-  overflow: "hidden",
-  boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
-  transition: "transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out",
-  "&:hover": {
-    transform: "translateY(-4px)",
-    boxShadow: "0 6px 12px rgba(0, 0, 0, 0.15)",
-  },
-}));
-
-const CardImageContainer = styled(Box)(({ theme }) => ({
-  width: 120,
-  [theme.breakpoints.down("sm")]: {
-    width: 80,
-  },
-}));
-
-const CardDetails = styled(CardContent)(({ theme }) => ({
+const StyledCard = styled(Card)(({ theme }) => ({
+  height: "100%",
   display: "flex",
   flexDirection: "column",
-  width: "100%",
-  padding: theme.spacing(2),
-  "&:last-child": {
-    paddingBottom: theme.spacing(2),
+  transition: "transform 0.3s ease, box-shadow 0.3s ease",
+  cursor: "pointer",
+  "&:hover": {
+    transform: "translateY(-4px)",
+    boxShadow: theme.shadows[8],
   },
 }));
 
-const RecommendationReason = styled(Typography)(({ theme }) => ({
-  marginTop: theme.spacing(1),
-  color: theme.palette.text.secondary,
-  fontSize: "0.875rem",
+const StyledCardMedia = styled("div")(({ image }) => ({
+  height: 200,
+  backgroundImage: `url(${image})`,
+  backgroundSize: "cover",
+  backgroundPosition: "center",
+  position: "relative",
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "flex-end",
+  padding: 8
 }));
 
-const RelevanceScore = styled(Box)(({ theme }) => ({
+const CategoryChip = styled(Chip)(({ theme }) => ({
+  position: "absolute",
+  top: 8,
+  right: 8,
+  backgroundColor: "rgba(255, 255, 255, 0.9)",
+  margin: 4,
+  "& .MuiChip-icon": {
+    color: theme.palette.primary.main
+  }
+}));
+
+const PostTitle = styled(Typography)(({ theme }) => ({
+  fontWeight: 600,
+  fontSize: "1.25rem",
+  marginBottom: theme.spacing(1),
+  lineHeight: 1.4,
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+  display: "-webkit-box",
+  WebkitLineClamp: 2,
+  WebkitBoxOrient: "vertical",
+  maxHeight: "2.8em",
+}));
+
+const PostDescription = styled(Typography)(({ theme }) => ({
+  color: theme.palette.text.secondary,
+  marginBottom: theme.spacing(2),
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+  display: "-webkit-box",
+  WebkitLineClamp: 3,
+  WebkitBoxOrient: "vertical",
+  maxHeight: "4.2em",
+  lineHeight: 1.4,
+}));
+
+const MetaInfo = styled(Box)(({ theme }) => ({
   display: "flex",
   alignItems: "center",
-  marginTop: theme.spacing(1),
+  gap: theme.spacing(2),
+  marginTop: "auto",
+  color: theme.palette.text.secondary,
+  "& .MuiSvgIcon-root": {
+    fontSize: "1rem",
+  },
 }));
 
-const ScoreChip = styled(Chip)(({ theme, score }) => ({
-  backgroundColor:
-    score >= 80
-      ? theme.palette.success.light
-      : score >= 60
-      ? theme.palette.info.light
-      : theme.palette.warning.light,
-  color:
-    score >= 80
-      ? theme.palette.success.contrastText
-      : score >= 60
-      ? theme.palette.info.contrastText
-      : theme.palette.warning.contrastText,
-  fontWeight: "bold",
-  marginRight: theme.spacing(1),
-}));
+const MetaText = styled(Typography)({
+  display: "flex",
+  alignItems: "center",
+  gap: 4,
+  fontSize: "0.875rem",
+});
 
 const AIRecommendations = () => {
+  const navigate = useNavigate();
   const [recommendations, setRecommendations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -150,15 +145,38 @@ const AIRecommendations = () => {
       setLoading(true);
       setError("");
 
+      // Get user's health profile
+      const profile = await getHealthProfile(username);
+      
+      // Analyze all health data to get relevant categories
+      const [statusAnalysis, conditionsAnalysis, goalsAnalysis] = await Promise.all([
+        analyzeHealthStatus(username, profile.currentStatus || ""),
+        Promise.all((profile.conditions || []).map(c => analyzeHealthCondition(username, c))),
+        analyzeHealthGoals(username, profile.goals || [])
+      ]);
+
+      // Combine all categories from different analyses
+      const allCategories = new Set([
+        ...(statusAnalysis?.categories || []),
+        ...conditionsAnalysis.flatMap(a => a?.categories || []),
+        ...(goalsAnalysis?.categories || [])
+      ]);
+
+      // Get recommendations based on categories
       const data = await getHealthRecommendations(username);
       console.log("Recommendations data:", data);
 
       if (Array.isArray(data) && data.length > 0) {
-        setRecommendations(data);
-        // Get unique categories from all recommendations
-        const categories = [...new Set(data.flatMap(rec => rec.matchedCategories || []))];
-        setMatchedCategories(categories);
-        setError("");
+        // Filter recommendations to only show posts that match the user's categories
+        const filteredRecommendations = data.filter(rec => {
+          const recCategories = rec?.categories || [];
+          return recCategories.some(cat => allCategories.has(cat));
+        });
+
+        setRecommendations(filteredRecommendations);
+        setMatchedCategories([...allCategories]);
+        setError(filteredRecommendations.length === 0 ? 
+          "No matching recommendations found. Try updating your health profile with more details." : "");
       } else {
         setError("No recommendations available. Try updating your health profile.");
         setRecommendations([]);
@@ -182,6 +200,10 @@ const AIRecommendations = () => {
     fetchRecommendations();
   };
 
+  const handleCardClick = (postId) => {
+    navigate(`/details/${postId}`);
+  };
+
   if (loading) {
     return (
       <Box sx={{ display: "flex", justifyContent: "center", p: 3 }}>
@@ -200,86 +222,128 @@ const AIRecommendations = () => {
 
   return (
     <StyledPaper>
-      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
-        <Typography variant="h5" sx={{ display: "flex", alignItems: "center" }}>
-          <SmartToyIcon sx={{ mr: 1 }} />
+      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
+        <Typography variant="h5" sx={{ 
+          display: "flex", 
+          alignItems: "center",
+          fontWeight: 600,
+          color: theme => theme.palette.primary.main
+        }}>
+          <SmartToyIcon sx={{ mr: 1.5 }} />
           AI Recommendations
         </Typography>
         <Button
           startIcon={<RecommendIcon />}
           onClick={handleRefresh}
-          variant="outlined"
-          size="small"
+          variant="contained"
+          size="medium"
+          sx={{ 
+            borderRadius: 2,
+            textTransform: "none",
+            px: 2
+          }}
         >
           Refresh
         </Button>
       </Box>
 
       {error ? (
-        <Alert severity="info" sx={{ mb: 2 }}>
+        <Alert severity="info" sx={{ mb: 2, borderRadius: 2 }}>
           {error}
         </Alert>
       ) : (
         <>
           {matchedCategories.length > 0 && (
-            <Box sx={{ mb: 2 }}>
-              <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-                Recommended Categories:
+            <Box sx={{ mb: 4 }}>
+              <Typography 
+                variant="subtitle1" 
+                color="text.secondary" 
+                sx={{ mb: 1.5, fontWeight: 500 }}
+              >
+                Showing posts from these categories:
               </Typography>
               <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}>
                 {matchedCategories.map((category) => (
                   <Chip
                     key={category}
                     label={category}
-                    size="small"
                     color="primary"
-                    variant="outlined"
+                    sx={{ 
+                      borderRadius: 3,
+                      px: 1,
+                      fontWeight: 500
+                    }}
                   />
                 ))}
               </Box>
             </Box>
           )}
 
-          <RecommendationsContainer>
+          <Grid container spacing={3} sx={{ mt: 2 }}>
             {recommendations.map((post) => (
-              <RecommendationCard key={post._id}>
-                <CardImageContainer>
-                  <CardMedia
-                    component="img"
-                    height="100%"
-                    image={post.picture || "https://source.unsplash.com/random?health"}
-                    alt={post.title}
-                    sx={{ objectFit: "cover" }}
-                  />
-                </CardImageContainer>
-                <CardDetails>
-                  <Typography variant="h6" component={Link} to={`/details/${post._id}`} sx={{ textDecoration: "none", color: "inherit" }}>
-                    {post.title}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                    {post.description.substring(0, 120)}...
-                  </Typography>
-                  <RecommendationReason>
-                    {post.reasoning}
-                  </RecommendationReason>
-                  <RelevanceScore>
-                    <ScoreChip
-                      label={`Relevance: ${post.relevanceScore}%`}
-                      score={post.relevanceScore}
-                      size="small"
-                    />
-                    {post.categories && (
-                      <Chip
-                        label={post.categories}
-                        size="small"
-                        sx={{ mr: 1 }}
-                      />
-                    )}
-                  </RelevanceScore>
-                </CardDetails>
-              </RecommendationCard>
+              <Grid item xs={12} sm={6} md={4} key={post.id || post._id}>
+                <StyledCard onClick={() => handleCardClick(post.id || post._id)}>
+                  <Box sx={{ position: "relative" }}>
+                    <StyledCardMedia image={post.picture || "https://source.unsplash.com/random?health"}>
+                      {post.categories?.map((category, index) => (
+                        <CategoryChip
+                          key={`${post.id || post._id}-${category}-${index}`}
+                          label={category}
+                          size="small"
+                          icon={
+                            category === "Nutrition" ? (
+                              <RestaurantIcon />
+                            ) : category === "Mental Health" ? (
+                              <HealthAndSafetyIcon />
+                            ) : (
+                              <FitnessCenterIcon />
+                            )
+                          }
+                        />
+                      ))}
+                    </StyledCardMedia>
+                  </Box>
+                  <CardContent sx={{ flexGrow: 1, display: "flex", flexDirection: "column", pb: 1 }}>
+                    <PostTitle variant="h6">{post.title}</PostTitle>
+                    <PostDescription variant="body2">
+                      {post.description.length > 150
+                        ? `${post.description.substring(0, 150)}...`
+                        : post.description}
+                    </PostDescription>
+                    <Box sx={{ mt: 2 }}>
+                      {post.matchedCategories?.map(category => (
+                        <Chip
+                          key={category}
+                          label={category}
+                          size="small"
+                          sx={{ 
+                            mr: 1,
+                            mb: 1,
+                            backgroundColor: theme => `${theme.palette.secondary.main}22`,
+                            color: theme => theme.palette.secondary.dark,
+                          }}
+                        />
+                      ))}
+                    </Box>
+                    <MetaInfo>
+                      <MetaText>
+                        <PersonIcon />
+                        {post.username}
+                      </MetaText>
+                      {post.createdDate && (
+                        <MetaText>
+                          <TimeIcon />
+                          {formatDistanceToNow(new Date(post.createdDate), {
+                            addSuffix: true,
+                          })}
+                        </MetaText>
+                      )}
+                    </MetaInfo>
+                  </CardContent>
+                </StyledCard>
+              </Grid>
             ))}
-          </RecommendationsContainer>
+          </Grid>
         </>
       )}
     </StyledPaper>

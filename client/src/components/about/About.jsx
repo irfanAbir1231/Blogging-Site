@@ -1,11 +1,50 @@
 import { Box, styled, Typography } from '@mui/material';
 
 const Banner = styled(Box)`
-    background-image: url('https://images.unsplash.com/photo-1504439468489-c8920d796a29?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');
+    background: linear-gradient(45deg, #0ea5e9 0%, #3b82f6 100%);
     width: 100%;
     height: 50vh;
-    background-position: center;
-    background-size: cover;
+    position: relative;
+    overflow: hidden;
+    
+    &::before {
+        content: '';
+        position: absolute;
+        top: 20%;
+        left: 10%;
+        width: 60%;
+        height: 60%;
+        background: radial-gradient(circle, rgba(186,230,253,0.5) 0%, rgba(125,211,252,0.3) 50%, rgba(0,0,0,0) 100%);
+        filter: blur(80px);
+        border-radius: 50%;
+        animation: pulse 10s ease-in-out infinite;
+        mix-blend-mode: soft-light;
+    }
+
+    &::after {
+        content: '';
+        position: absolute;
+        bottom: 10%;
+        right: 15%;
+        width: 55%;
+        height: 55%;
+        background: radial-gradient(circle, rgba(191,219,254,0.5) 0%, rgba(147,197,253,0.3) 50%, rgba(0,0,0,0) 100%);
+        filter: blur(80px);
+        border-radius: 50%;
+        animation: pulse 10s ease-in-out infinite 2s;
+        mix-blend-mode: soft-light;
+    }
+
+    @keyframes pulse {
+        0%, 100% {
+            opacity: 0.9;
+            transform: scale(1) translate(0, 0);
+        }
+        50% {
+            opacity: 0.5;
+            transform: scale(1.2) translate(-5%, 5%);
+        }
+    }
 `;
 
 

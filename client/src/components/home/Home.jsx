@@ -14,6 +14,7 @@ import { styled } from "@mui/material/styles";
 import { Suspense, lazy, useState, useEffect, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 
 //components
 import Banner from "../banner/Banner";
@@ -89,8 +90,7 @@ const CreateButton = styled(Button)(({ theme }) => ({
     left: 0,
     width: "100%",
     height: "100%",
-    background:
-      "linear-gradient(120deg, rgba(255,255,255,0) 30%, rgba(255,255,255,0.3), rgba(255,255,255,0) 70%)",
+    background: "linear-gradient(120deg, rgba(255,255,255,0) 30%, rgba(255,255,255,0.3), rgba(255,255,255,0) 70%)",
     transform: "translateX(-100%)",
     transition: "all 0.6s ease",
   },
@@ -205,6 +205,110 @@ const TabPanel = (props) => {
   );
 };
 
+const HeroSection = styled(Box)(({ theme }) => ({
+  minHeight: "90vh",
+  display: "flex",
+  alignItems: "center",
+  position: "relative",
+  background: "none",
+  background: "linear-gradient(45deg, #0ea5e9 0%, #3b82f6 50%, #1e3a8a 100%)",
+  position: 'relative',
+  overflow: 'hidden',
+  '&::before': {
+    content: '""',
+    position: 'absolute',
+    top: '20%',
+    left: '10%',
+    width: '60%',
+    height: '60%',
+    background: 'radial-gradient(circle, rgba(186,230,253,0.5) 0%, rgba(125,211,252,0.3) 50%, rgba(0,0,0,0) 100%)',
+    filter: 'blur(80px)',
+    borderRadius: '50%',
+    animation: 'pulse 10s ease-in-out infinite',
+    mixBlendMode: 'soft-light',
+  },
+  '&::after': {
+    content: '""',
+    position: 'absolute',
+    bottom: '10%',
+    right: '15%',
+    width: '55%',
+    height: '55%',
+    background: 'radial-gradient(circle, rgba(191,219,254,0.5) 0%, rgba(147,197,253,0.3) 50%, rgba(0,0,0,0) 100%)',
+    filter: 'blur(80px)',
+    borderRadius: '50%',
+    animation: 'pulse 10s ease-in-out infinite 2s',
+    mixBlendMode: 'soft-light',
+  },
+}));
+
+const GlowingText = styled(Typography)(({ theme }) => ({
+  color: "#fff",
+  textShadow: "0 0 20px rgba(186,230,253,0.5)",
+  position: "relative",
+  "&::after": {
+    content: '""',
+    position: "absolute",
+    top: 0,
+    left: 0,
+    width: "100%",
+    height: "100%",
+    background: "linear-gradient(90deg, rgba(186,230,253,0.2), rgba(147,197,253,0.2))",
+    filter: "blur(50px)",
+    opacity: 0.6,
+    zIndex: -1,
+    animation: "glow 2s ease-in-out infinite",
+  },
+}));
+
+const HeroButton = styled(Button)(({ theme }) => ({
+  background: "rgba(255,255,255,0.1)",
+  backdropFilter: "blur(10px)",
+  border: "1px solid rgba(255,255,255,0.2)",
+  color: "#fff",
+  padding: "12px 32px",
+  borderRadius: "30px",
+  fontSize: "1.1rem",
+  fontWeight: 600,
+  textTransform: "none",
+  transition: "all 0.3s ease",
+  position: "relative",
+  overflow: "hidden",
+  "&:hover": {
+    background: "rgba(255,255,255,0.2)",
+    transform: "translateY(-3px)",
+    boxShadow: "0 20px 40px rgba(14,165,233,0.3)",
+  },
+  "&::before": {
+    content: '""',
+    position: "absolute",
+    top: 0,
+    left: 0,
+    width: "100%",
+    height: "100%",
+    background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent)",
+    transform: "translateX(-100%)",
+    transition: "0.5s",
+  },
+  "&:hover::before": {
+    transform: "translateX(100%)",
+  },
+}));
+
+const FloatingImage = styled("img")(({ theme }) => ({
+  maxWidth: "100%",
+  height: "auto",
+  animation: "float 6s ease-in-out infinite",
+  "@keyframes float": {
+    "0%, 100%": {
+      transform: "translateY(0) rotate(0deg)",
+    },
+    "50%": {
+      transform: "translateY(-20px) rotate(2deg)",
+    },
+  },
+}));
+
 const Home = () => {
   const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
@@ -240,44 +344,93 @@ const Home = () => {
 
   return (
     <Box sx={{ overflow: "hidden" }}>
-      <ParallaxSection
-        backgroundImage="https://images.unsplash.com/photo-1501785888041-af3ef285b470?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80"
-        overlayColor="rgba(0,0,0,0.5)"
-      >
-        <ScrollAnimation direction="up" delay={0.2}>
-          <Typography
-            variant="h1"
-            sx={{
-              color: "white",
-              mb: 2,
-              textShadow: "2px 2px 8px rgba(0,0,0,0.5)",
-              fontWeight: 800,
-              fontSize: { xs: "2.5rem", sm: "3.5rem", md: "4.5rem" },
-              letterSpacing: "-0.02em",
-            }}
-          >
-            Welcome to{" "}
-            <Box component="span" sx={{ color: "primary.light" }}>
-              BlogSpace
-            </Box>
-          </Typography>
-          <Typography
-            variant="h5"
-            sx={{
-              color: "white",
-              opacity: 1,
-              textShadow: "1px 1px 4px rgba(0,0,0,0.4)",
-              mb: 4,
-              maxWidth: "800px",
-              mx: "auto",
-              lineHeight: 1.6,
-            }}
-          >
-            Discover amazing stories and share your thoughts with our growing
-            community of writers and readers
-          </Typography>
-        </ScrollAnimation>
-      </ParallaxSection>
+      <HeroSection>
+        <Container maxWidth="lg">
+          <Grid container spacing={4} alignItems="center" sx={{ minHeight: "80vh" }}>
+            <Grid item xs={12} md={6}>
+              <Box sx={{ position: "relative", zIndex: 1 }}>
+                <GlowingText variant="h1" sx={{ 
+                  mb: 3,
+                  fontWeight: 800,
+                  fontSize: { xs: "2.5rem", sm: "3.5rem", md: "4rem" },
+                  lineHeight: 1.2
+                }}>
+                  Inspiration is everywhere
+                </GlowingText>
+                <Typography variant="h5" sx={{ 
+                  color: "rgba(255,255,255,0.8)",
+                  mb: 4,
+                  maxWidth: "600px",
+                  lineHeight: 1.6
+                }}>
+                  There is no passion to be found playing small in settling for a life that is less than the one you are capable of living
+                </Typography>
+                <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
+                  <HeroButton
+                    onClick={() => navigate("/create")}
+                    startIcon={<AutoAwesomeIcon />}
+                  >
+                    Get started
+                  </HeroButton>
+                  <Button
+                    variant="outlined"
+                    sx={{
+                      borderColor: "rgba(255,255,255,0.3)",
+                      color: "white",
+                      borderRadius: "30px",
+                      padding: "12px 32px",
+                      fontSize: "1.1rem",
+                      fontWeight: 600,
+                      textTransform: "none",
+                      "&:hover": {
+                        borderColor: "white",
+                        background: "rgba(255,255,255,0.1)",
+                      },
+                    }}
+                    onClick={() => navigate("/explore")}
+                  >
+                    Explore
+                  </Button>
+                </Box>
+              </Box>
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <Box sx={{ 
+                position: "relative",
+                "&::before": {
+                  content: '""',
+                  position: "absolute",
+                  top: "50%",
+                  left: "50%",
+                  transform: "translate(-50%, -50%)",
+                  width: "140%",
+                  height: "140%",
+                  background: "radial-gradient(circle, rgba(186,230,253,0.5) 0%, rgba(147,197,253,0.3) 60%, rgba(0,0,0,0) 100%)",
+                  filter: "blur(80px)",
+                  zIndex: 0,
+                  animation: "breathe 10s ease-in-out infinite",
+                  mixBlendMode: "soft-light",
+                },
+              }}>
+                <FloatingImage 
+                  src="https://cdn3d.iconscout.com/3d/premium/thumb/content-writer-working-on-laptop-5682857-4731205.png" 
+                  alt="3D Content Writer Character"
+                  style={{ 
+                    width: "100%",
+                    maxWidth: "500px",
+                    margin: "0 auto",
+                    display: "block",
+                    position: "relative",
+                    zIndex: 1,
+                    filter: "drop-shadow(0 20px 40px rgba(14,165,233,0.4))",
+                    transform: "scale(1.1)",
+                  }}
+                />
+              </Box>
+            </Grid>
+          </Grid>
+        </Container>
+      </HeroSection>
 
       <StyledContainer maxWidth="lg">
         <BackgroundDecoration />
@@ -642,55 +795,67 @@ const Home = () => {
       </StyledContainer>
 
       <ParallaxSection
-        backgroundImage="https://images.unsplash.com/photo-1542273917363-3b1817f69a2d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2074&q=80"
-        overlayColor="rgba(0,0,0,0.6)"
+        style={{
+          background: 'linear-gradient(45deg, #7dd3fc 0%, #0ea5e9 50%, #3b82f6 100%)',
+          padding: '48px',
+          textAlign: 'center',
+          color: '#fff',
+        }}
       >
         <ScrollAnimation direction="up" delay={0.2}>
           <Typography
             variant="h3"
             sx={{
-              color: "white",
-              mb: 2,
-              textShadow: "2px 2px 4px rgba(0,0,0,0.3)",
-              fontWeight: 700,
-              fontSize: { xs: "2rem", md: "2.5rem" },
+              fontWeight: 800,
+              marginBottom: 2,
+              color: 'inherit',
             }}
           >
-            Join Our Community
+            {/* Welcome to PatientZero */}
           </Typography>
           <Typography
-            variant="h6"
+            variant="h5"
             sx={{
-              color: "white",
-              opacity: 1,
-              textShadow: "1px 1px 2px rgba(0,0,0,0.3)",
-              mb: 4,
-              maxWidth: "700px",
-              mx: "auto",
+              maxWidth: '800px',
+              margin: '0 auto 2rem',
+              color: 'rgba(255,255,255,0.9)',
+              lineHeight: 1.6,
             }}
           >
-            Share your stories and connect with other writers passionate about
-            health and wellness
+            A collaborative platform designed to empower patients and healthcare professionals. Share health stories, connect with others on their recovery journeys, and access valuable information from medical experts.
+          </Typography>
+          <Typography
+            variant="body1"
+            sx={{
+              maxWidth: '700px',
+              margin: '0 auto 3rem',
+              color: 'rgba(255,255,255,0.8)',
+              fontSize: '1.1rem',
+            }}
+          >
+            Dive into our community-driven content and join conversations that bring meaningful support to health experiences.
           </Typography>
           <Button
-            variant="outlined"
-            color="inherit"
+            variant="contained"
+            component={Link}
+            to="/create/post"
             sx={{
-              borderRadius: 30,
-              borderWidth: 2,
-              px: 4,
-              py: 1,
-              fontSize: "1rem",
-              textTransform: "none",
-              opacity: 1,
-              "&:hover": {
-                borderWidth: 2,
-                backgroundColor: "rgba(255,255,255,0.1)",
+              backgroundColor: 'rgba(255,255,255,0.15)',
+              backdropFilter: 'blur(10px)',
+              border: '1px solid rgba(255,255,255,0.2)',
+              color: '#fff',
+              padding: '12px 32px',
+              fontSize: '1.1rem',
+              fontWeight: 600,
+              textTransform: 'none',
+              '&:hover': {
+                backgroundColor: 'rgba(255,255,255,0.25)',
+                transform: 'translateY(-3px)',
+                boxShadow: '0 20px 40px rgba(14,165,233,0.3)',
               },
             }}
-            onClick={() => navigate("/account/register")}
           >
-            Sign Up Now
+            Share Your Story
           </Button>
         </ScrollAnimation>
       </ParallaxSection>

@@ -5,7 +5,7 @@ import { useRef } from "react";
 const ParallaxContainer = styled(Box)`
   position: relative;
   width: 100%;
-  height: 100vh;
+  min-height: 60vh;
   overflow: hidden;
   display: flex;
   align-items: center;
@@ -15,53 +15,22 @@ const ParallaxContainer = styled(Box)`
 const ParallaxContent = styled(motion.div)`
   position: relative;
   z-index: 1;
-  text-align: center;
-  color: white;
-  padding: 2rem;
   width: 100%;
   max-width: 1200px;
 `;
 
-const ParallaxBackground = styled(motion.div)`
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-size: cover;
-  background-position: center;
-  will-change: transform;
-`;
-
-const ParallaxSection = ({
-  backgroundImage,
-  children,
-  overlayColor = "rgba(0,0,0,0.5)",
-}) => {
+const ParallaxSection = ({ children, style }) => {
   const ref = useRef(null);
   const { scrollYProgress } = useScroll({
     target: ref,
     offset: ["start end", "end start"],
   });
 
-  const y = useTransform(scrollYProgress, [0, 1], ["0%", "50%"]);
-  // Keep content at full opacity
-  const backgroundOpacity = useTransform(
-    scrollYProgress,
-    [0, 0.5, 1],
-    [1, 0.8, 1]
-  );
+  const opacity = useTransform(scrollYProgress, [0, 0.5, 1], [1, 0.8, 1]);
 
   return (
-    <ParallaxContainer ref={ref}>
-      <ParallaxBackground
-        style={{
-          backgroundImage: `linear-gradient(${overlayColor}, ${overlayColor}), url(${backgroundImage})`,
-          y,
-          opacity: backgroundOpacity,
-        }}
-      />
-      <ParallaxContent>{children}</ParallaxContent>
+    <ParallaxContainer ref={ref} style={style}>
+      <ParallaxContent style={{ opacity }}>{children}</ParallaxContent>
     </ParallaxContainer>
   );
 };
