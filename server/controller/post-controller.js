@@ -147,6 +147,7 @@ export const getAllPosts = async (request, response) => {
   let category = request.query.category;
   let tag = request.query.tag;
   let nutritious = request.query.nutritious === "true";
+  let likedBy = request.query.likedBy; 
   let page = parseInt(request.query.page) || 1;
   let limit = parseInt(request.query.limit) || 10;
   let posts;
@@ -165,6 +166,11 @@ export const getAllPosts = async (request, response) => {
     // Filter by tag if provided
     if (tag) {
       query.tags = { $in: [new RegExp(tag, 'i')] }; // Case-insensitive tag matching
+    }
+
+    // Filter by liked user if provided
+    if (likedBy) {
+      query.upvotes = likedBy; 
     }
 
     const skip = (page - 1) * limit;

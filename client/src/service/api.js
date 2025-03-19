@@ -291,6 +291,54 @@ for (const [key, value] of Object.entries(SERVICE_URLS)) {
           }
         }
 
+        // Special handling for updateUserProfile to ensure correct URL and data structure
+        if (key === "updateUserProfile") {
+          try {
+            console.log("Making updateUserProfile request with config:", requestConfig);
+            
+            // Make sure we have the correct URL with the username
+            if (body.id) {
+              // Get the base URL from SERVICE_URLS
+              const baseUrl = SERVICE_URLS.updateUserProfile.url;
+              requestConfig.url = `${baseUrl}/${body.id}`;
+              
+              // Remove id from the request body since it's in the URL
+              const { id, ...dataWithoutId } = body;
+              requestConfig.data = dataWithoutId;
+              
+              console.log("Updated requestConfig for profile update:", requestConfig);
+            }
+            
+            const response = await axiosInstance(requestConfig);
+            console.log("updateUserProfile raw response:", response);
+            
+            // Return the response directly without additional processing
+            return response.data;
+          } catch (error) {
+            console.error("Error in updateUserProfile:", error);
+            return {
+              isError: true,
+              isSuccess: false,
+              msg: error.response?.data?.msg || "Error updating profile",
+              code: error.response?.status || 500
+            };
+          }
+        }
+
+        // Special handling for uploadFile to ensure proper data structure
+        if (key === "uploadFile") {
+          try {
+            console.log("Making uploadFile request with config:", requestConfig);
+            const response = await axiosInstance(requestConfig);
+            console.log("uploadFile raw response:", response);
+            
+            return processResponse(response);
+          } catch (error) {
+            console.error("Error in uploadFile:", error);
+            return ProcessError(error);
+          }
+        }
+
         // For PUT and DELETE requests with query parameter
         if (
           (value.method === "put" || value.method === "delete") &&

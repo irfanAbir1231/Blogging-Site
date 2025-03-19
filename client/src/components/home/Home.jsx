@@ -11,10 +11,11 @@ import {
   Tab,
 } from "@mui/material";
 import { styled } from "@mui/material/styles";
-import { Suspense, lazy, useState, useEffect, useContext } from "react";
+import { Suspense, lazy, useState, useEffect, useContext, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
+import { API } from "../../service/api";
 
 //components
 import Banner from "../banner/Banner";
@@ -101,31 +102,91 @@ const CreateButton = styled(Button)(({ theme }) => ({
 
 const FeatureCard = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(3),
-  height: "100%",
-  borderRadius: 16,
-  boxShadow: "0 8px 24px rgba(0, 0, 0, 0.08)",
-  transition: "all 0.3s ease",
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "center",
-  textAlign: "center",
-  background: theme.palette.background.paper,
-  "&:hover": {
-    transform: "translateY(-8px)",
-    boxShadow: "0 16px 40px rgba(0, 0, 0, 0.12)",
+  height: '100%',
+  borderRadius: theme.spacing(2),
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  textAlign: 'center',
+  transition: 'all 0.3s ease',
+  border: '1px solid',
+  borderColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : theme.palette.divider,
+  position: 'relative',
+  overflow: 'hidden',
+  background: theme.palette.mode === 'dark' ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.8)',
+  backdropFilter: 'blur(10px)',
+  '&:hover': {
+    transform: 'translateY(-8px)',
+    boxShadow: theme.palette.mode === 'dark' 
+      ? '0 20px 30px rgba(0, 0, 0, 0.3)' 
+      : '0 20px 30px rgba(0, 0, 0, 0.1)',
+    '& .icon-wrapper': {
+      transform: 'translateY(-5px) rotateY(15deg) rotateX(15deg) translateZ(0)',
+      boxShadow: theme.palette.mode === 'dark'
+        ? '0 15px 30px rgba(14, 165, 233, 0.3)'
+        : '0 15px 30px rgba(59, 130, 246, 0.4)',
+    },
+  },
+  '&::before': {
+    content: '""',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '5px',
+    background: theme.palette.mode === 'dark' 
+      ? 'linear-gradient(90deg, #0ea5e9, #3b82f6)' 
+      : 'linear-gradient(90deg, #0ea5e9, #3b82f6)',
+    opacity: theme.palette.mode === 'dark' ? 0.7 : 1,
   },
 }));
 
 const IconWrapper = styled(Box)(({ theme }) => ({
-  width: 60,
-  height: 60,
-  borderRadius: "50%",
+  width: "70px",
+  height: "70px",
+  borderRadius: "20px",
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
   marginBottom: theme.spacing(2),
-  background: theme.palette.primary.light,
-  color: theme.palette.primary.main,
+  background: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.7)',
+  backdropFilter: "blur(15px)",
+  border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(255, 255, 255, 0.8)'}`,
+  boxShadow: theme.palette.mode === 'dark' 
+    ? '0 8px 32px rgba(0, 0, 0, 0.3)' 
+    : '0 8px 32px rgba(59, 130, 246, 0.2)',
+  position: "relative",
+  overflow: "hidden",
+  transform: "translateZ(0)",
+  transition: "transform 0.3s ease, box-shadow 0.3s ease",
+  "&::before": {
+    content: '""',
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    background: theme.palette.mode === 'dark'
+      ? 'linear-gradient(135deg, rgba(14, 165, 233, 0.2), rgba(59, 130, 246, 0.2))'
+      : 'linear-gradient(135deg, rgba(14, 165, 233, 0.4), rgba(59, 130, 246, 0.4))',
+    opacity: 0.6,
+    zIndex: -1,
+  },
+  "&:hover": {
+    transform: "translateY(-5px) rotateY(10deg) rotateX(10deg) translateZ(0)",
+    boxShadow: theme.palette.mode === 'dark'
+      ? '0 15px 35px rgba(14, 165, 233, 0.3)'
+      : '0 15px 35px rgba(59, 130, 246, 0.3)',
+  },
+  animation: "float 6s ease-in-out infinite",
+  "@keyframes float": {
+    "0%, 100%": {
+      transform: "translateY(0) rotateY(0) rotateX(0) translateZ(0)",
+    },
+    "50%": {
+      transform: "translateY(-7px) rotateY(5deg) rotateX(5deg) translateZ(0)",
+    },
+  },
 }));
 
 const SectionDivider = styled(Divider)(({ theme }) => ({
@@ -210,41 +271,49 @@ const HeroSection = styled(Box)(({ theme }) => ({
   display: "flex",
   alignItems: "center",
   position: "relative",
-  background: "none",
-  background: "linear-gradient(45deg, #0ea5e9 0%, #3b82f6 50%, #1e3a8a 100%)",
-  position: 'relative',
+  background: "linear-gradient(135deg, #0369a1 0%, #2563eb 50%, #1e40af 100%)",
   overflow: 'hidden',
   '&::before': {
     content: '""',
     position: 'absolute',
-    top: '20%',
-    left: '10%',
-    width: '60%',
-    height: '60%',
-    background: 'radial-gradient(circle, rgba(186,230,253,0.5) 0%, rgba(125,211,252,0.3) 50%, rgba(0,0,0,0) 100%)',
+    top: '10%',
+    left: '5%',
+    width: '45%',
+    height: '45%',
+    background: 'radial-gradient(circle, rgba(96,165,250,0.4) 0%, rgba(59,130,246,0.2) 50%, rgba(0,0,0,0) 100%)',
     filter: 'blur(80px)',
     borderRadius: '50%',
-    animation: 'pulse 10s ease-in-out infinite',
+    animation: 'pulse 15s ease-in-out infinite',
     mixBlendMode: 'soft-light',
   },
   '&::after': {
     content: '""',
     position: 'absolute',
-    bottom: '10%',
-    right: '15%',
-    width: '55%',
-    height: '55%',
-    background: 'radial-gradient(circle, rgba(191,219,254,0.5) 0%, rgba(147,197,253,0.3) 50%, rgba(0,0,0,0) 100%)',
+    bottom: '15%',
+    right: '10%',
+    width: '40%',
+    height: '40%',
+    background: 'radial-gradient(circle, rgba(224,242,254,0.4) 0%, rgba(186,230,253,0.2) 50%, rgba(0,0,0,0) 100%)',
     filter: 'blur(80px)',
     borderRadius: '50%',
-    animation: 'pulse 10s ease-in-out infinite 2s',
+    animation: 'pulse 12s ease-in-out infinite 2s',
     mixBlendMode: 'soft-light',
+  },
+  '@keyframes pulse': {
+    '0%, 100%': {
+      transform: 'scale(1)',
+      opacity: 0.6,
+    },
+    '50%': {
+      transform: 'scale(1.1)',
+      opacity: 0.8,
+    },
   },
 }));
 
 const GlowingText = styled(Typography)(({ theme }) => ({
   color: "#fff",
-  textShadow: "0 0 20px rgba(186,230,253,0.5)",
+  textShadow: "0 0 20px rgba(224,242,254,0.6), 0 0 40px rgba(96,165,250,0.4)",
   position: "relative",
   "&::after": {
     content: '""',
@@ -253,45 +322,36 @@ const GlowingText = styled(Typography)(({ theme }) => ({
     left: 0,
     width: "100%",
     height: "100%",
-    background: "linear-gradient(90deg, rgba(186,230,253,0.2), rgba(147,197,253,0.2))",
+    background: "linear-gradient(90deg, rgba(224,242,254,0.2), rgba(96,165,250,0.2))",
     filter: "blur(50px)",
     opacity: 0.6,
     zIndex: -1,
-    animation: "glow 2s ease-in-out infinite",
+    animation: "glow 3s ease-in-out infinite",
+  },
+  "@keyframes glow": {
+    "0%, 100%": {
+      opacity: 0.6,
+    },
+    "50%": {
+      opacity: 0.8,
+    },
   },
 }));
 
 const HeroButton = styled(Button)(({ theme }) => ({
-  background: "rgba(255,255,255,0.1)",
-  backdropFilter: "blur(10px)",
-  border: "1px solid rgba(255,255,255,0.2)",
-  color: "#fff",
-  padding: "12px 32px",
+  background: "linear-gradient(90deg, #0284c7 0%, #1d4ed8 100%)",
+  color: "white",
   borderRadius: "30px",
+  padding: "12px 32px",
   fontSize: "1.1rem",
   fontWeight: 600,
   textTransform: "none",
+  boxShadow: "0 10px 20px rgba(2, 132, 199, 0.3)",
   transition: "all 0.3s ease",
-  position: "relative",
-  overflow: "hidden",
   "&:hover": {
-    background: "rgba(255,255,255,0.2)",
-    transform: "translateY(-3px)",
-    boxShadow: "0 20px 40px rgba(14,165,233,0.3)",
-  },
-  "&::before": {
-    content: '""',
-    position: "absolute",
-    top: 0,
-    left: 0,
-    width: "100%",
-    height: "100%",
-    background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent)",
-    transform: "translateX(-100%)",
-    transition: "0.5s",
-  },
-  "&:hover::before": {
-    transform: "translateX(100%)",
+    background: "linear-gradient(90deg, #0369a1 0%, #1e40af 100%)",
+    boxShadow: "0 15px 25px rgba(2, 132, 199, 0.4)",
+    transform: "translateY(-2px)",
   },
 }));
 
@@ -312,15 +372,69 @@ const FloatingImage = styled("img")(({ theme }) => ({
 const Home = () => {
   const navigate = useNavigate();
   const [scrolled, setScrolled] = useState(false);
+  const [scrollOpacity, setScrollOpacity] = useState(1);
   const [tabValue, setTabValue] = useState(0);
   const { account } = useContext(DataContext);
   const [isAuthenticated, setIsAuthenticated] = useState(
     !!sessionStorage.getItem("accessToken")
   );
+  const postsRef = useRef(null);
+  const [featuredPost, setFeaturedPost] = useState(null);
+  const [loadingFeaturedPost, setLoadingFeaturedPost] = useState(true);
+
+  // Fetch the most liked post to use as featured content
+  useEffect(() => {
+    const fetchMostLikedPost = async () => {
+      try {
+        setLoadingFeaturedPost(true);
+        // Get all posts first
+        const response = await API.getAllPosts({});
+        if (response && response.isSuccess) {
+          const posts = response.data.posts || response.data;
+          if (posts && posts.length > 0) {
+            // Sort posts by upvotes count in descending order
+            const sortedPosts = [...posts].sort((a, b) => {
+              const aUpvotes = a.upvotes?.length || 0;
+              const bUpvotes = b.upvotes?.length || 0;
+              return bUpvotes - aUpvotes;
+            });
+            
+            // Set the post with the most upvotes as featured
+            if (sortedPosts.length > 0) {
+              setFeaturedPost(sortedPosts[0]);
+              console.log('Most liked post:', sortedPosts[0].title, 'with', sortedPosts[0].upvotes?.length || 0, 'upvotes');
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching featured post:', error);
+      } finally {
+        setLoadingFeaturedPost(false);
+      }
+    };
+
+    fetchMostLikedPost();
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 100);
+      
+      // Calculate opacity based on scroll position
+      // Start fading at 100px, full fade at 600px
+      const scrollStart = 100;
+      const scrollEnd = 600;
+      const currentScroll = window.scrollY;
+      
+      if (currentScroll <= scrollStart) {
+        setScrollOpacity(1);
+      } else if (currentScroll >= scrollEnd) {
+        setScrollOpacity(0.2); // Don't fade completely, maintain a minimum opacity
+      } else {
+        // Linear interpolation between 1 and 0.2
+        const opacity = 1 - (0.8 * (currentScroll - scrollStart) / (scrollEnd - scrollStart));
+        setScrollOpacity(opacity);
+      }
     };
 
     window.addEventListener("scroll", handleScroll);
@@ -344,7 +458,7 @@ const Home = () => {
 
   return (
     <Box sx={{ overflow: "hidden" }}>
-      <HeroSection>
+      <HeroSection sx={{ opacity: scrollOpacity, transition: 'opacity 0.3s ease-out' }}>
         <Container maxWidth="lg">
           <Grid container spacing={4} alignItems="center" sx={{ minHeight: "80vh" }}>
             <Grid item xs={12} md={6}>
@@ -355,7 +469,7 @@ const Home = () => {
                   fontSize: { xs: "2.5rem", sm: "3.5rem", md: "4rem" },
                   lineHeight: 1.2
                 }}>
-                  Inspiration is everywhere
+                  Write, Share, Connect
                 </GlowingText>
                 <Typography variant="h5" sx={{ 
                   color: "rgba(255,255,255,0.8)",
@@ -363,7 +477,7 @@ const Home = () => {
                   maxWidth: "600px",
                   lineHeight: 1.6
                 }}>
-                  There is no passion to be found playing small in settling for a life that is less than the one you are capable of living
+                  Your words have the power to inspire, inform, and transform. Join our community of passionate bloggers and let your voice be heard.
                 </Typography>
                 <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
                   <HeroButton
@@ -382,12 +496,17 @@ const Home = () => {
                       fontSize: "1.1rem",
                       fontWeight: 600,
                       textTransform: "none",
+                      transition: "all 0.3s ease",
                       "&:hover": {
                         borderColor: "white",
                         background: "rgba(255,255,255,0.1)",
+                        boxShadow: "0 10px 20px rgba(2, 132, 199, 0.2)",
+                        transform: "translateY(-2px)",
                       },
                     }}
-                    onClick={() => navigate("/explore")}
+                    onClick={() => {
+                      postsRef.current?.scrollIntoView({ behavior: 'smooth' });
+                    }}
                   >
                     Explore
                   </Button>
@@ -413,17 +532,19 @@ const Home = () => {
                 },
               }}>
                 <FloatingImage 
-                  src="https://cdn3d.iconscout.com/3d/premium/thumb/content-writer-working-on-laptop-5682857-4731205.png" 
-                  alt="3D Content Writer Character"
-                  style={{ 
-                    width: "100%",
-                    maxWidth: "500px",
-                    margin: "0 auto",
-                    display: "block",
-                    position: "relative",
-                    zIndex: 1,
-                    filter: "drop-shadow(0 20px 40px rgba(14,165,233,0.4))",
-                    transform: "scale(1.1)",
+                  src="https://images.unsplash.com/photo-1499750310107-5fef28a66643?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2940&q=80" 
+                  alt="Person Writing in Notebook"
+                  loading="lazy"
+                  sx={{ 
+                    maxWidth: "100%", 
+                    height: "auto",
+                    transform: "scale(1)",
+                    transition: "transform 0.5s ease",
+                    borderRadius: "12px",
+                    filter: "drop-shadow(0 20px 30px rgba(14,165,233,0.3))",
+                    "&:hover": {
+                      transform: "scale(1.05)",
+                    }
                   }}
                 />
               </Box>
@@ -461,7 +582,7 @@ const Home = () => {
             )}
           </ScrollAnimation>
 
-          <Box sx={{ position: "relative", zIndex: 2 }}>
+          <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
             <Grid container spacing={2} alignItems="center">
               <Grid item xs={12} md={9}>
                 <SearchBar onSearch={handleSearch} />
@@ -502,66 +623,87 @@ const Home = () => {
                           color="primary"
                           icon={<WhatshotIcon />}
                         />
-                        <Paper
-                          elevation={3}
-                          sx={{
-                            borderRadius: 4,
-                            overflow: "hidden",
-                            border: "1px solid",
-                            borderColor: "divider",
-                          }}
-                        >
-                          <Grid container>
-                            <Grid item xs={12} md={6}>
-                              <Box
-                                sx={{
-                                  height: { xs: 200, md: "100%" },
-                                  backgroundImage:
-                                    "url(https://source.unsplash.com/random/600x400/?health)",
-                                  backgroundSize: "cover",
-                                  backgroundPosition: "center",
-                                }}
-                              />
-                            </Grid>
-                            <Grid item xs={12} md={6}>
-                              <Box sx={{ p: 4 }}>
-                                <Typography
-                                  variant="overline"
-                                  color="primary.main"
-                                  fontWeight={600}
-                                >
-                                  EDITOR'S PICK
-                                </Typography>
-                                <Typography
-                                  variant="h4"
-                                  sx={{ mt: 1, mb: 2, fontWeight: 700 }}
-                                >
-                                  Discover the Latest Health Trends
-                                </Typography>
-                                <Typography
-                                  variant="body1"
-                                  color="text.secondary"
-                                  sx={{ mb: 3 }}
-                                >
-                                  Explore cutting-edge research and expert
-                                  insights on maintaining optimal health in
-                                  today's fast-paced world.
-                                </Typography>
-                                <Button
-                                  variant="outlined"
-                                  onClick={() => navigate("/details/featured")}
+                        {loadingFeaturedPost ? (
+                          <LoadingFallback />
+                        ) : featuredPost ? (
+                          <Paper
+                            elevation={3}
+                            sx={{
+                              borderRadius: 4,
+                              overflow: "hidden",
+                              border: "1px solid",
+                              borderColor: "divider",
+                            }}
+                          >
+                            <Grid container>
+                              <Grid item xs={12} md={6}>
+                                <Box
                                   sx={{
-                                    borderRadius: 8,
-                                    textTransform: "none",
-                                    fontWeight: 600,
+                                    height: { xs: 200, md: "100%" },
+                                    backgroundImage: featuredPost.picture
+                                      ? `url(${featuredPost.picture})`
+                                      : "url(https://source.unsplash.com/random/600x400/?health)",
+                                    backgroundSize: "cover",
+                                    backgroundPosition: "center",
                                   }}
-                                >
-                                  Read Article
-                                </Button>
-                              </Box>
+                                />
+                              </Grid>
+                              <Grid item xs={12} md={6}>
+                                <Box sx={{ p: 4 }}>
+                                  <Typography
+                                    variant="overline"
+                                    color="primary.main"
+                                    fontWeight={600}
+                                  >
+                                    MOST LIKED POST
+                                  </Typography>
+                                  <Typography
+                                    variant="h4"
+                                    sx={{ mt: 1, mb: 2, fontWeight: 700 }}
+                                  >
+                                    {featuredPost.title}
+                                  </Typography>
+                                  <Typography
+                                    variant="body1"
+                                    color="text.secondary"
+                                    sx={{ mb: 3 }}
+                                  >
+                                    {featuredPost.description.length > 150
+                                      ? `${featuredPost.description.substring(0, 150)}...`
+                                      : featuredPost.description}
+                                  </Typography>
+                                  <Button
+                                    variant="outlined"
+                                    onClick={() => navigate(`/details/${featuredPost._id}`)}
+                                    sx={{
+                                      borderRadius: 8,
+                                      textTransform: "none",
+                                      fontWeight: 600,
+                                    }}
+                                  >
+                                    Read Article
+                                  </Button>
+                                </Box>
+                              </Grid>
                             </Grid>
-                          </Grid>
-                        </Paper>
+                          </Paper>
+                        ) : (
+                          <Paper
+                            elevation={3}
+                            sx={{
+                              borderRadius: 4,
+                              overflow: "hidden",
+                              border: "1px solid",
+                              borderColor: "divider",
+                              p: 4,
+                              textAlign: "center",
+                            }}
+                          >
+                            <Typography variant="h6">
+                              No featured content available at the moment
+                            </Typography>
+                          </Paper>
+                        )}
                       </Box>
                     </ScrollAnimation>
                   </Grid>
@@ -571,8 +713,11 @@ const Home = () => {
                   <Grid item xs={12} md={4}>
                     <ScrollAnimation direction="up" delay={0.2}>
                       <FeatureCard>
-                        <IconWrapper>
-                          <TrendingUpIcon fontSize="large" />
+                        <IconWrapper className="icon-wrapper">
+                          <TrendingUpIcon sx={{ 
+                            fontSize: 32, 
+                            color: theme => theme.palette.mode === 'dark' ? 'rgba(59, 130, 246, 0.9)' : 'rgba(14, 165, 233, 0.9)' 
+                          }} />
                         </IconWrapper>
                         <Typography
                           variant="h6"
@@ -590,8 +735,11 @@ const Home = () => {
                   <Grid item xs={12} md={4}>
                     <ScrollAnimation direction="up" delay={0.4}>
                       <FeatureCard>
-                        <IconWrapper>
-                          <WhatshotIcon fontSize="large" />
+                        <IconWrapper className="icon-wrapper">
+                          <WhatshotIcon sx={{ 
+                            fontSize: 32, 
+                            color: theme => theme.palette.mode === 'dark' ? 'rgba(239, 68, 68, 0.9)' : 'rgba(220, 38, 38, 0.9)' 
+                          }} />
                         </IconWrapper>
                         <Typography
                           variant="h6"
@@ -610,8 +758,11 @@ const Home = () => {
                   <Grid item xs={12} md={4}>
                     <ScrollAnimation direction="up" delay={0.6}>
                       <FeatureCard>
-                        <IconWrapper>
-                          <AutoAwesomeIcon fontSize="large" />
+                        <IconWrapper className="icon-wrapper">
+                          <AutoAwesomeIcon sx={{ 
+                            fontSize: 32, 
+                            color: theme => theme.palette.mode === 'dark' ? 'rgba(234, 179, 8, 0.9)' : 'rgba(202, 138, 4, 0.9)' 
+                          }} />
                         </IconWrapper>
                         <Typography
                           variant="h6"
@@ -632,7 +783,7 @@ const Home = () => {
                   <Chip label="LATEST POSTS" />
                 </SectionDivider>
 
-                <Grid container spacing={4}>
+                <Grid container spacing={4} ref={postsRef}>
                   <Grid item xs={12}>
                     <ScrollAnimation direction="up" delay={0.8}>
                       <Suspense fallback={<LoadingFallback />}>
@@ -660,66 +811,87 @@ const Home = () => {
                         color="primary"
                         icon={<WhatshotIcon />}
                       />
-                      <Paper
-                        elevation={3}
-                        sx={{
-                          borderRadius: 4,
-                          overflow: "hidden",
-                          border: "1px solid",
-                          borderColor: "divider",
-                        }}
-                      >
-                        <Grid container>
-                          <Grid item xs={12} md={6}>
-                            <Box
-                              sx={{
-                                height: { xs: 200, md: "100%" },
-                                backgroundImage:
-                                  "url(https://source.unsplash.com/random/600x400/?health)",
-                                backgroundSize: "cover",
-                                backgroundPosition: "center",
-                              }}
-                            />
-                          </Grid>
-                          <Grid item xs={12} md={6}>
-                            <Box sx={{ p: 4 }}>
-                              <Typography
-                                variant="overline"
-                                color="primary.main"
-                                fontWeight={600}
-                              >
-                                EDITOR'S PICK
-                              </Typography>
-                              <Typography
-                                variant="h4"
-                                sx={{ mt: 1, mb: 2, fontWeight: 700 }}
-                              >
-                                Discover the Latest Health Trends
-                              </Typography>
-                              <Typography
-                                variant="body1"
-                                color="text.secondary"
-                                sx={{ mb: 3 }}
-                              >
-                                Explore cutting-edge research and expert
-                                insights on maintaining optimal health in
-                                today's fast-paced world.
-                              </Typography>
-                              <Button
-                                variant="outlined"
-                                onClick={() => navigate("/details/featured")}
+                      {loadingFeaturedPost ? (
+                        <LoadingFallback />
+                      ) : featuredPost ? (
+                        <Paper
+                          elevation={3}
+                          sx={{
+                            borderRadius: 4,
+                            overflow: "hidden",
+                            border: "1px solid",
+                            borderColor: "divider",
+                          }}
+                        >
+                          <Grid container>
+                            <Grid item xs={12} md={6}>
+                              <Box
                                 sx={{
-                                  borderRadius: 8,
-                                  textTransform: "none",
-                                  fontWeight: 600,
+                                  height: { xs: 200, md: "100%" },
+                                  backgroundImage: featuredPost.picture
+                                    ? `url(${featuredPost.picture})`
+                                    : "url(https://source.unsplash.com/random/600x400/?health)",
+                                  backgroundSize: "cover",
+                                  backgroundPosition: "center",
                                 }}
-                              >
-                                Read Article
-                              </Button>
-                            </Box>
+                              />
+                            </Grid>
+                            <Grid item xs={12} md={6}>
+                              <Box sx={{ p: 4 }}>
+                                <Typography
+                                  variant="overline"
+                                  color="primary.main"
+                                  fontWeight={600}
+                                >
+                                  MOST LIKED POST
+                                </Typography>
+                                <Typography
+                                  variant="h4"
+                                  sx={{ mt: 1, mb: 2, fontWeight: 700 }}
+                                >
+                                  {featuredPost.title}
+                                </Typography>
+                                <Typography
+                                  variant="body1"
+                                  color="text.secondary"
+                                  sx={{ mb: 3 }}
+                                >
+                                  {featuredPost.description.length > 150
+                                    ? `${featuredPost.description.substring(0, 150)}...`
+                                    : featuredPost.description}
+                                </Typography>
+                                <Button
+                                  variant="outlined"
+                                  onClick={() => navigate(`/details/${featuredPost._id}`)}
+                                  sx={{
+                                    borderRadius: 8,
+                                    textTransform: "none",
+                                    fontWeight: 600,
+                                  }}
+                                >
+                                  Read Article
+                                </Button>
+                              </Box>
+                            </Grid>
                           </Grid>
-                        </Grid>
-                      </Paper>
+                        </Paper>
+                      ) : (
+                        <Paper
+                          elevation={3}
+                          sx={{
+                            borderRadius: 4,
+                            overflow: "hidden",
+                            border: "1px solid",
+                            borderColor: "divider",
+                            p: 4,
+                            textAlign: "center",
+                          }}
+                        >
+                          <Typography variant="h6">
+                            No featured content available at the moment
+                          </Typography>
+                        </Paper>
+                      )}
                     </Box>
                   </ScrollAnimation>
                 </Grid>
@@ -729,10 +901,16 @@ const Home = () => {
                 <Grid item xs={12} md={4}>
                   <ScrollAnimation direction="up" delay={0.2}>
                     <FeatureCard>
-                      <IconWrapper>
-                        <TrendingUpIcon fontSize="large" />
+                      <IconWrapper className="icon-wrapper">
+                        <TrendingUpIcon sx={{ 
+                          fontSize: 32, 
+                          color: theme => theme.palette.mode === 'dark' ? 'rgba(59, 130, 246, 0.9)' : 'rgba(14, 165, 233, 0.9)' 
+                        }} />
                       </IconWrapper>
-                      <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
+                      <Typography
+                        variant="h6"
+                        sx={{ mb: 1, fontWeight: 600 }}
+                      >
                         Trending Topics
                       </Typography>
                       <Typography variant="body2" color="text.secondary">
@@ -745,15 +923,22 @@ const Home = () => {
                 <Grid item xs={12} md={4}>
                   <ScrollAnimation direction="up" delay={0.4}>
                     <FeatureCard>
-                      <IconWrapper>
-                        <WhatshotIcon fontSize="large" />
+                      <IconWrapper className="icon-wrapper">
+                        <WhatshotIcon sx={{ 
+                          fontSize: 32, 
+                          color: theme => theme.palette.mode === 'dark' ? 'rgba(239, 68, 68, 0.9)' : 'rgba(220, 38, 38, 0.9)' 
+                        }} />
                       </IconWrapper>
-                      <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
+                      <Typography
+                        variant="h6"
+                        sx={{ mb: 1, fontWeight: 600 }}
+                      >
                         Hot Discussions
                       </Typography>
                       <Typography variant="body2" color="text.secondary">
                         Join vibrant conversations about health topics that
-                        matter to you and connect with like-minded individuals.
+                        matter to you and connect with like-minded
+                        individuals.
                       </Typography>
                     </FeatureCard>
                   </ScrollAnimation>
@@ -761,15 +946,21 @@ const Home = () => {
                 <Grid item xs={12} md={4}>
                   <ScrollAnimation direction="up" delay={0.6}>
                     <FeatureCard>
-                      <IconWrapper>
-                        <AutoAwesomeIcon fontSize="large" />
+                      <IconWrapper className="icon-wrapper">
+                        <AutoAwesomeIcon sx={{ 
+                          fontSize: 32, 
+                          color: theme => theme.palette.mode === 'dark' ? 'rgba(234, 179, 8, 0.9)' : 'rgba(202, 138, 4, 0.9)' 
+                        }} />
                       </IconWrapper>
-                      <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
+                      <Typography
+                        variant="h6"
+                        sx={{ mb: 1, fontWeight: 600 }}
+                      >
                         Expert Insights
                       </Typography>
                       <Typography variant="body2" color="text.secondary">
-                        Learn from healthcare professionals and thought leaders
-                        sharing their knowledge and experiences.
+                        Learn from healthcare professionals and thought
+                        leaders sharing their knowledge and experiences.
                       </Typography>
                     </FeatureCard>
                   </ScrollAnimation>
@@ -780,7 +971,7 @@ const Home = () => {
                 <Chip label="LATEST POSTS" />
               </SectionDivider>
 
-              <Grid container spacing={4}>
+              <Grid container spacing={4} ref={postsRef}>
                 <Grid item xs={12}>
                   <ScrollAnimation direction="up" delay={0.8}>
                     <Suspense fallback={<LoadingFallback />}>

@@ -20,25 +20,45 @@ import { styled } from "@mui/material/styles";
 
 const StyledCard = styled(motion.div)(({ theme }) => ({
   height: "100%",
-  background: theme.palette.background.paper,
+  background: theme.palette.mode === 'dark' 
+    ? 'rgba(0, 0, 0, 0.2)' 
+    : 'rgba(255, 255, 255, 0.7)',
+  backdropFilter: 'blur(10px)',
   borderRadius: theme.spacing(2),
   overflow: "hidden",
-  boxShadow: theme.shadows[1],
+  border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : theme.palette.divider}`,
+  boxShadow: theme.palette.mode === 'dark' 
+    ? '0 8px 32px rgba(0, 0, 0, 0.3)' 
+    : '0 8px 32px rgba(59, 130, 246, 0.15)',
   transition: "transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out",
   "&:hover": {
     transform: "translateY(-4px)",
-    boxShadow: theme.shadows[8],
+    boxShadow: theme.palette.mode === 'dark' 
+      ? '0 20px 40px rgba(0, 0, 0, 0.4)' 
+      : '0 20px 40px rgba(59, 130, 246, 0.2)',
+  },
+  position: 'relative',
+  '&::before': {
+    content: '""',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '3px',
+    background: 'linear-gradient(90deg, #0ea5e9, #3b82f6)',
+    opacity: theme.palette.mode === 'dark' ? 0.7 : 1,
+    zIndex: 1,
   },
 }));
 
 const ImageContainer = styled(Box)(({ theme }) => ({
   position: "relative",
-  paddingTop: "56.25%", // 16:9 aspect ratio
-  backgroundColor:
-    theme.palette.mode === "dark"
-      ? "rgba(255, 255, 255, 0.05)"
-      : "rgba(0, 0, 0, 0.03)",
+  paddingTop: "50%", // 2:1 aspect ratio (reduced from 56.25%)
+  backgroundColor: theme.palette.mode === "dark"
+    ? "rgba(0, 0, 0, 0.2)"
+    : "rgba(255, 255, 255, 0.6)",
   overflow: "hidden",
+  borderBottom: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.8)'}`,
 }));
 
 const StyledImage = styled("img")({
@@ -54,16 +74,39 @@ const StyledImage = styled("img")({
   },
 });
 
+// Category chip with glassy styling
 const CategoryChip = styled(Chip)(({ theme }) => ({
   position: "absolute",
-  top: 16,
-  left: 16,
-  backgroundColor: "rgba(255, 255, 255, 0.9)",
-  backdropFilter: "blur(4px)",
+  top: theme.spacing(2),
+  right: theme.spacing(2),
   fontWeight: 500,
-  "& .MuiChip-label": {
-    color: theme.palette.grey[900],
-  },
+  fontSize: "0.75rem",
+  textTransform: "uppercase",
+  letterSpacing: "0.5px",
+  background: theme.palette.mode === 'dark' 
+    ? 'rgba(0, 0, 0, 0.5)' 
+    : 'rgba(255, 255, 255, 0.8)',
+  backdropFilter: 'blur(10px)',
+  color: theme.palette.mode === 'dark' 
+    ? theme.palette.primary.light 
+    : theme.palette.primary.main,
+  border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(59, 130, 246, 0.3)' : 'rgba(59, 130, 246, 0.2)'}`,
+  boxShadow: theme.palette.mode === 'dark' 
+    ? '0 4px 12px rgba(0, 0, 0, 0.3)' 
+    : '0 4px 12px rgba(59, 130, 246, 0.15)',
+}));
+
+const MetaContainer = styled(Box)(({ theme }) => ({
+  display: "flex",
+  alignItems: "center",
+  gap: theme.spacing(1),
+  marginBottom: theme.spacing(1),
+  padding: theme.spacing(1),
+  borderRadius: theme.spacing(1),
+  background: theme.palette.mode === 'dark' 
+    ? 'rgba(0, 0, 0, 0.2)' 
+    : 'rgba(255, 255, 255, 0.5)',
+  border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.7)'}`,
 }));
 
 const TagsContainer = styled(Box)(({ theme }) => ({
@@ -71,51 +114,96 @@ const TagsContainer = styled(Box)(({ theme }) => ({
   flexWrap: "wrap",
   gap: theme.spacing(0.5),
   marginTop: theme.spacing(1),
+  padding: theme.spacing(1),
+  borderRadius: theme.spacing(1),
+  background: theme.palette.mode === 'dark' 
+    ? 'rgba(0, 0, 0, 0.15)' 
+    : 'rgba(255, 255, 255, 0.4)',
+  backdropFilter: 'blur(5px)',
+  border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.7)'}`,
 }));
 
-const TagChip = styled(Chip)(({ theme }) => ({
-  height: 20,
-  "& .MuiChip-label": {
-    px: 1,
-    fontSize: "0.75rem",
+const Tag = styled(Chip)(({ theme }) => ({
+  height: 24,
+  fontSize: '0.7rem',
+  background: theme.palette.mode === 'dark' 
+    ? 'rgba(0, 0, 0, 0.3)' 
+    : 'rgba(255, 255, 255, 0.8)',
+  backdropFilter: 'blur(8px)',
+  border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(59, 130, 246, 0.2)'}`,
+  color: theme.palette.mode === 'dark' 
+    ? theme.palette.text.secondary 
+    : theme.palette.text.primary,
+  '&:hover': {
+    background: theme.palette.mode === 'dark' 
+      ? 'rgba(0, 0, 0, 0.4)' 
+      : 'rgba(255, 255, 255, 0.9)',
   },
 }));
 
-const ContentContainer = styled(Box)(({ theme }) => ({
+const ContentContainer = styled(CardContent)(({ theme }) => ({
   padding: theme.spacing(3),
   display: "flex",
   flexDirection: "column",
-  gap: theme.spacing(2),
-}));
-
-const MetaContainer = styled(Box)(({ theme }) => ({
-  padding: theme.spacing(2, 3),
-  borderTop: `1px solid ${
-    theme.palette.mode === "dark"
-      ? "rgba(255, 255, 255, 0.05)"
-      : "rgba(0, 0, 0, 0.05)"
-  }`,
+  background: theme.palette.mode === 'dark' 
+    ? 'rgba(0, 0, 0, 0.1)' 
+    : 'rgba(255, 255, 255, 0.5)',
+  backdropFilter: 'blur(5px)',
+  borderTop: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.8)'}`,
+  transition: 'background-color 0.3s ease',
+  '&:hover': {
+    background: theme.palette.mode === 'dark' 
+      ? 'rgba(0, 0, 0, 0.15)' 
+      : 'rgba(255, 255, 255, 0.6)',
+  },
 }));
 
 const AuthorInfo = styled(Box)(({ theme }) => ({
   display: "flex",
   alignItems: "center",
-  gap: theme.spacing(1.5),
-  marginBottom: theme.spacing(2),
+  gap: theme.spacing(1),
+  padding: theme.spacing(1),
+  borderRadius: theme.spacing(1),
+  background: theme.palette.mode === 'dark' 
+    ? 'rgba(0, 0, 0, 0.2)' 
+    : 'rgba(255, 255, 255, 0.5)',
+  border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.7)'}`,
+  '&:hover': {
+    background: theme.palette.mode === 'dark' 
+      ? 'rgba(0, 0, 0, 0.25)' 
+      : 'rgba(255, 255, 255, 0.6)',
+  },
 }));
 
 const VoteContainer = styled(Box)(({ theme }) => ({
   display: "flex",
   justifyContent: "space-between",
   alignItems: "center",
+  padding: theme.spacing(1),
+  borderRadius: theme.spacing(1),
+  background: theme.palette.mode === 'dark' 
+    ? 'rgba(0, 0, 0, 0.15)' 
+    : 'rgba(255, 255, 255, 0.4)',
+  backdropFilter: 'blur(5px)',
+  border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.7)'}`,
+  marginTop: theme.spacing(2),
 }));
 
 const VoteButton = styled(IconButton)(({ theme, active: isActive }) => ({
   color: isActive ? theme.palette.primary.main : theme.palette.text.secondary,
   transition: "all 0.2s ease",
+  background: theme.palette.mode === 'dark' 
+    ? 'rgba(0, 0, 0, 0.2)' 
+    : 'rgba(255, 255, 255, 0.7)',
+  backdropFilter: 'blur(8px)',
+  border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.8)'}`,
+  padding: '6px',
   "&:hover": {
     transform: "scale(1.1)",
     color: isActive ? theme.palette.primary.dark : theme.palette.primary.light,
+    background: theme.palette.mode === 'dark' 
+      ? 'rgba(0, 0, 0, 0.3)' 
+      : 'rgba(255, 255, 255, 0.9)',
   },
 }));
 
@@ -184,7 +272,7 @@ const AnimatedPostCard = ({ post }) => {
             sx={{
               fontWeight: 600,
               display: "-webkit-box",
-              WebkitLineClamp: 2,
+              WebkitLineClamp: 1,
               WebkitBoxOrient: "vertical",
               overflow: "hidden",
               lineHeight: 1.3,
@@ -199,7 +287,7 @@ const AnimatedPostCard = ({ post }) => {
             color="text.secondary"
             sx={{
               display: "-webkit-box",
-              WebkitLineClamp: 3,
+              WebkitLineClamp: 2,
               WebkitBoxOrient: "vertical",
               overflow: "hidden",
               lineHeight: 1.6,
@@ -211,12 +299,12 @@ const AnimatedPostCard = ({ post }) => {
           {post.tags && post.tags.length > 0 ? (
             <TagsContainer>
               {post.tags.map((tag) => (
-                <TagChip key={tag} label={tag} size="small" />
+                <Tag key={tag} label={tag} size="small" />
               ))}
             </TagsContainer>
           ) : post.categories ? (
             <TagsContainer>
-              <TagChip label={post.categories} size="small" />
+              <Tag label={post.categories} size="small" />
             </TagsContainer>
           ) : null}
         </ContentContainer>
@@ -225,8 +313,8 @@ const AnimatedPostCard = ({ post }) => {
           <AuthorInfo>
             <Avatar
               sx={{
-                width: 32,
-                height: 32,
+                width: 28,
+                height: 28,
                 bgcolor: theme.palette.primary.main,
               }}
             >

@@ -8,7 +8,7 @@ import { useLocation } from "react-router-dom";
 
 const POSTS_PER_PAGE = 9;
 
-const Posts = () => {
+const Posts = ({ username }) => {
   const location = useLocation();
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -44,13 +44,21 @@ const Posts = () => {
         setLoading(true);
         setError(null);
 
-        // Only include category in the query if it's not empty
+        // Prepare query parameters
         const queryParams = {
           page: pageNum,
           limit: POSTS_PER_PAGE,
         };
+        
+        // Only include category if it's not empty
         if (selectedCategory) {
           queryParams.category = selectedCategory;
+        }
+        
+        // If username is provided, filter by username
+        // This ensures profile pages only show posts from that user
+        if (username) {
+          queryParams.username = username;
         }
 
         console.log("Fetching posts with params:", queryParams);
@@ -116,7 +124,7 @@ const Posts = () => {
         }
       }
     },
-    [selectedCategory]
+    [selectedCategory, username]
   );
 
   // Initial fetch
@@ -125,7 +133,7 @@ const Posts = () => {
     setPosts([]);
     setHasMore(true);
     fetchPosts(1);
-  }, [selectedCategory, fetchPosts]);
+  }, [selectedCategory, username, fetchPosts]);
 
   // Handle infinite scroll
   useEffect(() => {
@@ -186,6 +194,7 @@ const Posts = () => {
           <Typography variant="h6">
             No posts found{" "}
             {selectedCategory ? `for category "${selectedCategory}"` : ""}
+            {username ? ` by user ${username}` : ""}
           </Typography>
         </Box>
       ) : (

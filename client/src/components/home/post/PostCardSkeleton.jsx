@@ -11,12 +11,19 @@ const shimmer = keyframes`
 `;
 
 const StyledCard = styled(Card)(({ theme }) => ({
-  height: "100%",
-  display: "flex",
-  flexDirection: "column",
+  borderRadius: "12px",
   overflow: "hidden",
   position: "relative",
-  backgroundColor: theme.palette.mode === "dark" ? "#1e1e1e" : "#f5f5f5",
+  background: theme.palette.mode === 'dark' 
+    ? 'rgba(0, 0, 0, 0.2)' 
+    : 'rgba(255, 255, 255, 0.7)',
+  backdropFilter: 'blur(10px)',
+  transform: "translateY(0)",
+  transition: "transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out",
+  border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : theme.palette.divider}`,
+  boxShadow: theme.palette.mode === 'dark' 
+    ? '0 8px 32px rgba(0, 0, 0, 0.3)' 
+    : '0 8px 32px rgba(59, 130, 246, 0.15)',
   "&::after": {
     content: '""',
     position: "absolute",
@@ -45,6 +52,17 @@ const StyledCard = styled(Card)(({ theme }) => ({
     backgroundRepeat: "no-repeat",
     pointerEvents: "none",
   },
+  '&::before': {
+    content: '""',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '3px',
+    background: 'linear-gradient(90deg, #0ea5e9, #3b82f6)',
+    opacity: theme.palette.mode === 'dark' ? 0.7 : 1,
+    zIndex: 1,
+  },
 }));
 
 const StyledSkeleton = styled(Skeleton)(({ theme }) => ({
@@ -61,16 +79,25 @@ const StyledSkeleton = styled(Skeleton)(({ theme }) => ({
   },
 }));
 
+const ImageContainer = styled(Box)(({ theme }) => ({
+  position: "relative",
+  paddingTop: "60%", // 5:3 aspect ratio
+  width: "100%",
+  overflow: "hidden",
+}));
+
 const PostCardSkeleton = () => {
   return (
     <StyledCard elevation={2}>
-      {/* Image placeholder */}
-      <StyledSkeleton
-        variant="rectangular"
-        width="100%"
-        height={200}
-        animation="wave"
-      />
+      <ImageContainer>
+        <StyledSkeleton
+          variant="rectangular"
+          width="100%"
+          height="100%"
+          animation="wave"
+          sx={{ position: 'absolute', top: 0, left: 0 }}
+        />
+      </ImageContainer>
 
       <Box sx={{ p: 2 }}>
         {/* Title placeholder */}

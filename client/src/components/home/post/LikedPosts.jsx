@@ -1,16 +1,13 @@
-import { Grid, Box, Typography, CircularProgress, Fab } from "@mui/material";
+import { Grid, Box, Typography } from "@mui/material";
 import { useEffect, useState, useCallback, useRef } from "react";
 import { API } from "../../../service/api";
 import AnimatedPostCard from "./AnimatedPostCard";
 import PostCardSkeleton from "./PostCardSkeleton";
 import { useInView } from "react-intersection-observer";
-import { useLocation } from "react-router-dom";
-import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 
 const POSTS_PER_PAGE = 9;
 
-const PostsList = () => {
-  const location = useLocation();
+const LikedPosts = ({ username }) => {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
@@ -18,47 +15,32 @@ const PostsList = () => {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [totalPages, setTotalPages] = useState(1);
-  const [selectedCategory, setSelectedCategory] = useState("");
-  const [showScrollTop, setShowScrollTop] = useState(false);
   const mountedRef = useRef(true);
   const loadingRef = useRef(false);
   const { ref, inView } = useInView({
-    threshold: 0.1, // Trigger earlier when 10% of the element is in view
-    rootMargin: '200px 0px', // Load more before user reaches the bottom
+    threshold: 0.5,
     delay: 100,
   });
 
-  // Update selected category when URL changes
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const category = params.get("category") || "";
-    if (selectedCategory !== category) {
-      setSelectedCategory(category);
-      setInitialLoading(true); // Reset loading state when category changes
-    }
-  }, [location.search]);
-
-  const fetchPosts = useCallback(
+  const fetchLikedPosts = useCallback(
     async (pageNum) => {
-      if (!mountedRef.current || loadingRef.current) return;
+      if (!mountedRef.current || loadingRef.current || !username) return;
 
       try {
         loadingRef.current = true;
         setLoading(true);
         setError(null);
 
-        // Only include category in the query if it's not empty
+        // Prepare query parameters
         const queryParams = {
           page: pageNum,
           limit: POSTS_PER_PAGE,
+          likedBy: username, // This will filter posts that the user has liked
         };
-        if (selectedCategory) {
-          queryParams.category = selectedCategory;
-        }
 
-        console.log("Fetching posts with params:", queryParams);
+        console.log("Fetching liked posts with params:", queryParams);
         const response = await API.getAllPosts(queryParams);
-        console.log("API response:", response);
+        console.log("API response for liked posts:", response);
 
         if (!mountedRef.current) return;
 
@@ -78,7 +60,7 @@ const PostsList = () => {
           const paginationData = responseData.pagination || {};
           const totalPagesCount = paginationData.pages || 1;
 
-          console.log("Processed posts data:", postsData);
+          console.log("Processed liked posts data:", postsData);
           setTotalPages(totalPagesCount);
 
           if (pageNum === 1) {
@@ -99,32 +81,16 @@ const PostsList = () => {
             });
           }
           setHasMore(pageNum < totalPagesCount);
-        } else if (response && response.isFailure) {
-          console.error("API response failure:", response);
-          setError(response.msg || "Failed to load posts");
-          if (pageNum === 1) {
-            setPosts([]);
-          }
-          setHasMore(false);
-        } else if (response && response.isError) {
-          console.error("API response error:", response);
-          setError(response.msg || "Failed to load posts");
-          if (pageNum === 1) {
-            setPosts([]);
-          }
-          setHasMore(false);
         } else {
-          console.error("Unknown API response format:", response);
-          setError("Failed to load posts. Unknown response format.");
-          if (pageNum === 1) {
-            setPosts([]);
-          }
+          console.error("API response error:", response);
+          setError(response?.msg || "Failed to load liked posts");
+          setPosts([]);
           setHasMore(false);
         }
       } catch (err) {
         if (!mountedRef.current) return;
-        console.error("Error fetching posts:", err);
-        setError(err?.msg || "Failed to load posts. Please try again later.");
+        console.error("Error fetching liked posts:", err);
+        setError(err?.msg || "Failed to load liked posts. Please try again later.");
         setPosts([]);
         setHasMore(false);
       } finally {
@@ -135,17 +101,18 @@ const PostsList = () => {
         }
       }
     },
-    [selectedCategory]
+    [username]
   );
 
   // Initial fetch
   useEffect(() => {
-    setPage(1);
-    setPosts([]);
-    setHasMore(true);
-    setInitialLoading(true); // Ensure initialLoading is set to true before fetch
-    fetchPosts(1);
-  }, [selectedCategory, fetchPosts]);
+    if (username) {
+      setPage(1);
+      setPosts([]);
+      setHasMore(true);
+      fetchLikedPosts(1);
+    }
+  }, [username, fetchLikedPosts]);
 
   // Handle infinite scroll
   useEffect(() => {
@@ -155,27 +122,9 @@ const PostsList = () => {
     if (shouldLoadMore) {
       const nextPage = page + 1;
       setPage(nextPage);
-      fetchPosts(nextPage);
+      fetchLikedPosts(nextPage);
     }
-  }, [inView, hasMore, page, totalPages, fetchPosts]);
-
-  // Handle scroll to show/hide scroll-to-top button
-  useEffect(() => {
-    const handleScroll = () => {
-      setShowScrollTop(window.scrollY > 500);
-    };
-    
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  // Scroll to top function
-  const scrollToTop = () => {
-    window.scrollTo({
-      top: 0,
-      behavior: 'smooth'
-    });
-  };
+  }, [inView, hasMore, page, totalPages, fetchLikedPosts]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -187,8 +136,8 @@ const PostsList = () => {
   // Render loading skeletons
   const renderSkeletons = (count) => (
     <Grid container spacing={3}>
-      {Array.from(new Array(count)).map((_, index) => (
-        <Grid item xs={12} sm={6} md={4} key={`skeleton-${index}`}>
+      {Array.from({ length: count }).map((_, index) => (
+        <Grid item xs={12} sm={6} key={`skeleton-${index}`}>
           <PostCardSkeleton />
         </Grid>
       ))}
@@ -210,20 +159,13 @@ const PostsList = () => {
 
   return (
     <Box>
-      {selectedCategory && selectedCategory !== "All" && (
-        <Typography variant="h6" sx={{ mb: 3 }}>
-          Showing posts tagged with "{selectedCategory}"
-        </Typography>
-      )}
-
       {initialLoading ? (
         // Show skeleton loading for initial load
-        renderSkeletons(6)
+        renderSkeletons(4)
       ) : safePosts.length === 0 ? (
         <Box sx={{ textAlign: "center", py: 4 }}>
-          <Typography variant="h6">
-            No posts found{" "}
-            {selectedCategory ? `for category "${selectedCategory}"` : ""}
+          <Typography variant="h6" color="text.secondary">
+            No liked posts found
           </Typography>
         </Box>
       ) : (
@@ -234,9 +176,8 @@ const PostsList = () => {
                 item
                 xs={12}
                 sm={6}
-                md={4}
-                lg={3}
                 key={`${post._id || index}-${Date.now()}-${index}`}
+                sx={{ minHeight: 600 }}
               >
                 <AnimatedPostCard post={post} />
               </Grid>
@@ -250,36 +191,15 @@ const PostsList = () => {
               sx={{
                 py: 4,
                 width: "100%",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                flexDirection: "column",
               }}
             >
-              {loading && !initialLoading && renderSkeletons(3)}
-              {!hasMore && safePosts.length > 0 && (
-                <Typography variant="body1" color="text.secondary" sx={{ py: 2 }}>
-                  No more posts to load
-                </Typography>
-              )}
+              {loading && renderSkeletons(2)}
             </Box>
           )}
         </>
-      )}
-      {showScrollTop && (
-        <Fab
-          sx={{
-            position: 'fixed',
-            bottom: 16,
-            right: 16,
-          }}
-          onClick={scrollToTop}
-        >
-          <KeyboardArrowUpIcon />
-        </Fab>
       )}
     </Box>
   );
 };
 
-export default PostsList;
+export default LikedPosts;

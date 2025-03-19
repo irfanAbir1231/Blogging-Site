@@ -94,11 +94,11 @@ export const uploadImage = async (request, response) => {
     const imageUrl = `${url}/file/${request.file.filename}`;
     console.log("Generated image URL:", imageUrl);
 
-    // Return success response
+    // Return success response with consistent format
     return response.status(200).json({
       isSuccess: true,
-      data: imageUrl,
-      file: {
+      data: {
+        imageUrl: imageUrl,
         filename: request.file.filename,
         originalname: request.file.originalname,
         mimetype: request.file.mimetype,

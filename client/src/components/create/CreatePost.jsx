@@ -120,6 +120,7 @@ const StyledTextArea = styled(TextareaAutosize)(({ theme }) => ({
   border: `1px solid ${theme.palette.divider}`,
   borderRadius: theme.spacing(1),
   backgroundColor: theme.palette.background.paper,
+  color: theme.palette.text.primary,
   fontSize: "1rem",
   fontFamily: theme.typography.fontFamily,
   resize: "vertical",
@@ -130,6 +131,7 @@ const StyledTextArea = styled(TextareaAutosize)(({ theme }) => ({
   },
   "&::placeholder": {
     opacity: 0.7,
+    color: theme.palette.text.secondary,
   },
   "&.error": {
     borderColor: theme.palette.error.main,
@@ -168,7 +170,7 @@ const initialPost = {
   description: "",
   picture: "",
   username: "",
-  tags: ["Nutrition"], // Changed from categories to tags array
+  tags: ["Nutrition"], 
   createdDate: new Date(),
 };
 
@@ -176,7 +178,7 @@ const CreatePost = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { account } = useContext(DataContext);
-  const mountedRef = useRef(true); // Add mounted ref
+  const mountedRef = useRef(true); 
 
   const [post, setPost] = useState(initialPost);
   const [file, setFile] = useState("");
@@ -379,7 +381,7 @@ const CreatePost = () => {
     if (mounted) {
       safeSetPost((prev) => ({
         ...prev,
-        tags: category !== "All" ? [category] : prev.tags, // Update to use tags array
+        tags: category !== "All" ? [category] : prev.tags, 
         username: account.username,
       }));
     }

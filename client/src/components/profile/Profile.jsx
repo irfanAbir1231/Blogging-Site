@@ -41,6 +41,7 @@ import HealthAndSafetyIcon from "@mui/icons-material/HealthAndSafety";
 import Posts from "../home/post/Posts";
 import ScrollAnimation from "../animations/ScrollAnimation";
 import HealthProfile from "./HealthProfile";
+import LikedPosts from "../home/post/LikedPosts";
 
 const ProfileContainer = styled(Container)(({ theme }) => ({
   paddingTop: theme.spacing(8),
@@ -132,7 +133,11 @@ const Profile = () => {
   const [tabValue, setTabValue] = useState(0);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
-  const [editedUser, setEditedUser] = useState({});
+  const [editedUser, setEditedUser] = useState({
+    name: user?.name || '',
+    bio: user?.bio || 'No bio available',
+    profilePicture: user?.profilePicture || ''
+  });
   const [openPhotoDialog, setOpenPhotoDialog] = useState(false);
   const [notification, setNotification] = useState({
     open: false,
@@ -143,6 +148,12 @@ const Profile = () => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploading, setUploading] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "info",
+  });
 
   const isOwnProfile = account.username === username;
 
@@ -234,12 +245,21 @@ const Profile = () => {
     fetchUserProfile();
   }, [username]);
 
+  useEffect(() => {
+    if (user) {
+      setEditedUser({
+        name: user.name || '',
+        bio: user.bio || 'No bio available',
+        profilePicture: user.profilePicture || ''
+      });
+    }
+  }, [user]);
+
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
   };
 
   const handleEditProfile = () => {
-    setEditedUser({ ...user });
     setEditing(true);
   };
 
@@ -257,24 +277,54 @@ const Profile = () => {
 
   const handleSaveProfile = async () => {
     try {
-      // Send updated profile to the API
-      const response = await API.updateUserProfile(username, {
+      setIsUpdating(true);
+      
+      // Check if the profile picture is a File object (new upload) or a string (existing URL)
+      const profilePicData = typeof editedUser.profilePicture === 'object' 
+        ? await uploadProfilePicture(editedUser.profilePicture)
+        : editedUser.profilePicture;
+      
+      console.log("Profile picture data:", profilePicData);
+        
+      // Prepare the updated user data
+      const updatedUserData = {
+        id: username,
         name: editedUser.name,
         bio: editedUser.bio,
-        profilePicture: editedUser.profilePicture,
-      });
-
+        profilePicture: profilePicData,
+      };
+      
+      console.log("Sending update with data:", updatedUserData);
+      
+      const response = await API.updateUserProfile(updatedUserData);
+      
+      console.log("Update profile response:", response);
+      
       if (response.isSuccess) {
-        setUser(response.data);
+        setUser({
+          ...user,
+          name: response.data.name,
+          bio: response.data.bio,
+          profilePicture: response.data.profilePicture,
+        });
+        setSnackbar({
+          open: true,
+          message: "Profile updated successfully!",
+          severity: "success",
+        });
         setEditing(false);
-        showNotification("Profile updated successfully", "success");
       } else {
-        console.error("Error updating profile:", response.msg);
-        showNotification(response.msg || "Error updating profile", "error");
+        throw new Error(response.msg || "Failed to update profile");
       }
     } catch (error) {
       console.error("Error updating profile:", error);
-      showNotification("Error updating profile. Please try again.", "error");
+      setSnackbar({
+        open: true,
+        message: error.message || "Failed to update profile. Please try again.",
+        severity: "error",
+      });
+    } finally {
+      setIsUpdating(false);
     }
   };
 
@@ -286,7 +336,7 @@ const Profile = () => {
     const { name, value } = e.target;
     setEditedUser((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: value
     }));
   };
 
@@ -329,8 +379,10 @@ const Profile = () => {
         const imageUrl = uploadResponse.data.imageUrl;
 
         // Update the user profile with the new image URL
-        const updateResponse = await API.updateUserProfile(username, {
-          ...user,
+        const updateResponse = await API.updateUserProfile({
+          id: username,
+          name: user.name,
+          bio: user.bio,
           profilePicture: imageUrl,
         });
 
@@ -363,6 +415,38 @@ const Profile = () => {
       setUploading(false);
       setUploadProgress(0);
       setSelectedFile(null);
+    }
+  };
+
+  const uploadProfilePicture = async (file) => {
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const uploadResponse = await API.uploadFile(
+        formData,
+        (progress) => setUploadProgress(progress),
+        null
+      );
+
+      console.log("Upload response:", uploadResponse);
+
+      if (uploadResponse.isSuccess) {
+        // Handle different response formats
+        if (uploadResponse.data && typeof uploadResponse.data === 'string') {
+          return uploadResponse.data; // Direct URL string
+        } else if (uploadResponse.data && uploadResponse.data.imageUrl) {
+          return uploadResponse.data.imageUrl; // Object with imageUrl property
+        } else {
+          console.log("Using original image URL");
+          return typeof file === 'string' ? file : URL.createObjectURL(file);
+        }
+      } else {
+        throw new Error(uploadResponse.msg || "Failed to upload profile picture");
+      }
+    } catch (error) {
+      console.error("Error uploading profile picture:", error);
+      throw error;
     }
   };
 
@@ -446,8 +530,9 @@ const Profile = () => {
                     color="primary"
                     startIcon={<SaveIcon />}
                     onClick={handleSaveProfile}
+                    disabled={isUpdating}
                   >
-                    Save
+                    {isUpdating ? "Saving..." : "Save"}
                   </Button>
                   <Button
                     variant="outlined"
@@ -541,11 +626,7 @@ const Profile = () => {
           </TabPanel>
 
           <TabPanel value={tabValue} index={2}>
-            <Box sx={{ textAlign: "center", py: 4 }}>
-              <Typography variant="h6" color="text.secondary">
-                Liked posts will appear here
-              </Typography>
-            </Box>
+            <LikedPosts username={username} />
           </TabPanel>
         </Paper>
       </ScrollAnimation>
@@ -610,18 +691,18 @@ const Profile = () => {
 
       {/* Notification */}
       <Snackbar
-        open={notification.open}
+        open={snackbar.open}
         autoHideDuration={6000}
-        onClose={handleCloseNotification}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
         anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
       >
         <Alert
-          onClose={handleCloseNotification}
-          severity={notification.severity}
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+          severity={snackbar.severity}
           variant="filled"
           sx={{ width: "100%" }}
         >
-          {notification.message}
+          {snackbar.message}
         </Alert>
       </Snackbar>
     </ProfileContainer>
