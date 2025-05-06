@@ -91,7 +91,8 @@ const CreateButton = styled(Button)(({ theme }) => ({
     left: 0,
     width: "100%",
     height: "100%",
-    background: "linear-gradient(120deg, rgba(255,255,255,0) 30%, rgba(255,255,255,0.3), rgba(255,255,255,0) 70%)",
+    background:
+      "linear-gradient(120deg, rgba(255,255,255,0) 30%, rgba(255,255,255,0.3), rgba(255,255,255,0) 70%)",
     transform: "translateX(-100%)",
     transition: "all 0.6s ease",
   },
@@ -102,42 +103,51 @@ const CreateButton = styled(Button)(({ theme }) => ({
 
 const FeatureCard = styled(Paper)(({ theme }) => ({
   padding: theme.spacing(3),
-  height: '100%',
+  height: "100%",
   borderRadius: theme.spacing(2),
-  display: 'flex',
-  flexDirection: 'column',
-  alignItems: 'center',
-  textAlign: 'center',
-  transition: 'all 0.3s ease',
-  border: '1px solid',
-  borderColor: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : theme.palette.divider,
-  position: 'relative',
-  overflow: 'hidden',
-  background: theme.palette.mode === 'dark' ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.8)',
-  backdropFilter: 'blur(10px)',
-  '&:hover': {
-    transform: 'translateY(-8px)',
-    boxShadow: theme.palette.mode === 'dark' 
-      ? '0 20px 30px rgba(0, 0, 0, 0.3)' 
-      : '0 20px 30px rgba(0, 0, 0, 0.1)',
-    '& .icon-wrapper': {
-      transform: 'translateY(-5px) rotateY(15deg) rotateX(15deg) translateZ(0)',
-      boxShadow: theme.palette.mode === 'dark'
-        ? '0 15px 30px rgba(14, 165, 233, 0.3)'
-        : '0 15px 30px rgba(59, 130, 246, 0.4)',
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  textAlign: "center",
+  transition: "all 0.3s ease",
+  border: "1px solid",
+  borderColor:
+    theme.palette.mode === "dark"
+      ? "rgba(255, 255, 255, 0.1)"
+      : theme.palette.divider,
+  position: "relative",
+  overflow: "hidden",
+  background:
+    theme.palette.mode === "dark"
+      ? "rgba(0, 0, 0, 0.2)"
+      : "rgba(255, 255, 255, 0.8)",
+  backdropFilter: "blur(10px)",
+  "&:hover": {
+    transform: "translateY(-8px)",
+    boxShadow:
+      theme.palette.mode === "dark"
+        ? "0 20px 30px rgba(0, 0, 0, 0.3)"
+        : "0 20px 30px rgba(0, 0, 0, 0.1)",
+    "& .icon-wrapper": {
+      transform: "translateY(-5px) rotateY(15deg) rotateX(15deg) translateZ(0)",
+      boxShadow:
+        theme.palette.mode === "dark"
+          ? "0 15px 30px rgba(14, 165, 233, 0.3)"
+          : "0 15px 30px rgba(59, 130, 246, 0.4)",
     },
   },
-  '&::before': {
+  "&::before": {
     content: '""',
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     left: 0,
-    width: '100%',
-    height: '5px',
-    background: theme.palette.mode === 'dark' 
-      ? 'linear-gradient(90deg, #0ea5e9, #3b82f6)' 
-      : 'linear-gradient(90deg, #0ea5e9, #3b82f6)',
-    opacity: theme.palette.mode === 'dark' ? 0.7 : 1,
+    width: "100%",
+    height: "5px",
+    background:
+      theme.palette.mode === "dark"
+        ? "linear-gradient(90deg, #0ea5e9, #3b82f6)"
+        : "linear-gradient(90deg, #0ea5e9, #3b82f6)",
+    opacity: theme.palette.mode === "dark" ? 0.7 : 1,
   },
 }));
 
@@ -149,12 +159,20 @@ const IconWrapper = styled(Box)(({ theme }) => ({
   alignItems: "center",
   justifyContent: "center",
   marginBottom: theme.spacing(2),
-  background: theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.7)',
+  background:
+    theme.palette.mode === "dark"
+      ? "rgba(255, 255, 255, 0.05)"
+      : "rgba(255, 255, 255, 0.7)",
   backdropFilter: "blur(15px)",
-  border: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(255, 255, 255, 0.8)'}`,
-  boxShadow: theme.palette.mode === 'dark' 
-    ? '0 8px 32px rgba(0, 0, 0, 0.3)' 
-    : '0 8px 32px rgba(59, 130, 246, 0.2)',
+  border: `1px solid ${
+    theme.palette.mode === "dark"
+      ? "rgba(255, 255, 255, 0.1)"
+      : "rgba(255, 255, 255, 0.8)"
+  }`,
+  boxShadow:
+    theme.palette.mode === "dark"
+      ? "0 8px 32px rgba(0, 0, 0, 0.3)"
+      : "0 8px 32px rgba(59, 130, 246, 0.2)",
   position: "relative",
   overflow: "hidden",
   transform: "translateZ(0)",
@@ -166,17 +184,19 @@ const IconWrapper = styled(Box)(({ theme }) => ({
     left: 0,
     right: 0,
     bottom: 0,
-    background: theme.palette.mode === 'dark'
-      ? 'linear-gradient(135deg, rgba(14, 165, 233, 0.2), rgba(59, 130, 246, 0.2))'
-      : 'linear-gradient(135deg, rgba(14, 165, 233, 0.4), rgba(59, 130, 246, 0.4))',
+    background:
+      theme.palette.mode === "dark"
+        ? "linear-gradient(135deg, rgba(14, 165, 233, 0.2), rgba(59, 130, 246, 0.2))"
+        : "linear-gradient(135deg, rgba(14, 165, 233, 0.4), rgba(59, 130, 246, 0.4))",
     opacity: 0.6,
     zIndex: -1,
   },
   "&:hover": {
     transform: "translateY(-5px) rotateY(10deg) rotateX(10deg) translateZ(0)",
-    boxShadow: theme.palette.mode === 'dark'
-      ? '0 15px 35px rgba(14, 165, 233, 0.3)'
-      : '0 15px 35px rgba(59, 130, 246, 0.3)',
+    boxShadow:
+      theme.palette.mode === "dark"
+        ? "0 15px 35px rgba(14, 165, 233, 0.3)"
+        : "0 15px 35px rgba(59, 130, 246, 0.3)",
   },
   animation: "float 6s ease-in-out infinite",
   "@keyframes float": {
@@ -272,40 +292,42 @@ const HeroSection = styled(Box)(({ theme }) => ({
   alignItems: "center",
   position: "relative",
   background: "linear-gradient(135deg, #0369a1 0%, #2563eb 50%, #1e40af 100%)",
-  overflow: 'hidden',
-  '&::before': {
+  overflow: "hidden",
+  "&::before": {
     content: '""',
-    position: 'absolute',
-    top: '10%',
-    left: '5%',
-    width: '45%',
-    height: '45%',
-    background: 'radial-gradient(circle, rgba(96,165,250,0.4) 0%, rgba(59,130,246,0.2) 50%, rgba(0,0,0,0) 100%)',
-    filter: 'blur(80px)',
-    borderRadius: '50%',
-    animation: 'pulse 15s ease-in-out infinite',
-    mixBlendMode: 'soft-light',
+    position: "absolute",
+    top: "10%",
+    left: "5%",
+    width: "45%",
+    height: "45%",
+    background:
+      "radial-gradient(circle, rgba(96,165,250,0.4) 0%, rgba(59,130,246,0.2) 50%, rgba(0,0,0,0) 100%)",
+    filter: "blur(80px)",
+    borderRadius: "50%",
+    animation: "pulse 15s ease-in-out infinite",
+    mixBlendMode: "soft-light",
   },
-  '&::after': {
+  "&::after": {
     content: '""',
-    position: 'absolute',
-    bottom: '15%',
-    right: '10%',
-    width: '40%',
-    height: '40%',
-    background: 'radial-gradient(circle, rgba(224,242,254,0.4) 0%, rgba(186,230,253,0.2) 50%, rgba(0,0,0,0) 100%)',
-    filter: 'blur(80px)',
-    borderRadius: '50%',
-    animation: 'pulse 12s ease-in-out infinite 2s',
-    mixBlendMode: 'soft-light',
+    position: "absolute",
+    bottom: "15%",
+    right: "10%",
+    width: "40%",
+    height: "40%",
+    background:
+      "radial-gradient(circle, rgba(224,242,254,0.4) 0%, rgba(186,230,253,0.2) 50%, rgba(0,0,0,0) 100%)",
+    filter: "blur(80px)",
+    borderRadius: "50%",
+    animation: "pulse 12s ease-in-out infinite 2s",
+    mixBlendMode: "soft-light",
   },
-  '@keyframes pulse': {
-    '0%, 100%': {
-      transform: 'scale(1)',
+  "@keyframes pulse": {
+    "0%, 100%": {
+      transform: "scale(1)",
       opacity: 0.6,
     },
-    '50%': {
-      transform: 'scale(1.1)',
+    "50%": {
+      transform: "scale(1.1)",
       opacity: 0.8,
     },
   },
@@ -322,7 +344,8 @@ const GlowingText = styled(Typography)(({ theme }) => ({
     left: 0,
     width: "100%",
     height: "100%",
-    background: "linear-gradient(90deg, rgba(224,242,254,0.2), rgba(96,165,250,0.2))",
+    background:
+      "linear-gradient(90deg, rgba(224,242,254,0.2), rgba(96,165,250,0.2))",
     filter: "blur(50px)",
     opacity: 0.6,
     zIndex: -1,
@@ -371,8 +394,6 @@ const FloatingImage = styled("img")(({ theme }) => ({
 
 const Home = () => {
   const navigate = useNavigate();
-  const [scrolled, setScrolled] = useState(false);
-  const [scrollOpacity, setScrollOpacity] = useState(1);
   const [tabValue, setTabValue] = useState(0);
   const { account } = useContext(DataContext);
   const [isAuthenticated, setIsAuthenticated] = useState(
@@ -398,47 +419,28 @@ const Home = () => {
               const bUpvotes = b.upvotes?.length || 0;
               return bUpvotes - aUpvotes;
             });
-            
+
             // Set the post with the most upvotes as featured
             if (sortedPosts.length > 0) {
               setFeaturedPost(sortedPosts[0]);
-              console.log('Most liked post:', sortedPosts[0].title, 'with', sortedPosts[0].upvotes?.length || 0, 'upvotes');
+              console.log(
+                "Most liked post:",
+                sortedPosts[0].title,
+                "with",
+                sortedPosts[0].upvotes?.length || 0,
+                "upvotes"
+              );
             }
           }
         }
       } catch (error) {
-        console.error('Error fetching featured post:', error);
+        console.error("Error fetching featured post:", error);
       } finally {
         setLoadingFeaturedPost(false);
       }
     };
 
     fetchMostLikedPost();
-  }, []);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 100);
-      
-      // Calculate opacity based on scroll position
-      // Start fading at 100px, full fade at 600px
-      const scrollStart = 100;
-      const scrollEnd = 600;
-      const currentScroll = window.scrollY;
-      
-      if (currentScroll <= scrollStart) {
-        setScrollOpacity(1);
-      } else if (currentScroll >= scrollEnd) {
-        setScrollOpacity(0.2); // Don't fade completely, maintain a minimum opacity
-      } else {
-        // Linear interpolation between 1 and 0.2
-        const opacity = 1 - (0.8 * (currentScroll - scrollStart) / (scrollEnd - scrollStart));
-        setScrollOpacity(opacity);
-      }
-    };
-
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   // Check authentication status when account changes
@@ -458,26 +460,39 @@ const Home = () => {
 
   return (
     <Box sx={{ overflow: "hidden" }}>
-      <HeroSection sx={{ opacity: scrollOpacity, transition: 'opacity 0.3s ease-out' }}>
+      <HeroSection>
         <Container maxWidth="lg">
-          <Grid container spacing={4} alignItems="center" sx={{ minHeight: "80vh" }}>
+          <Grid
+            container
+            spacing={4}
+            alignItems="center"
+            sx={{ minHeight: "80vh" }}
+          >
             <Grid item xs={12} md={6}>
               <Box sx={{ position: "relative", zIndex: 1 }}>
-                <GlowingText variant="h1" sx={{ 
-                  mb: 3,
-                  fontWeight: 800,
-                  fontSize: { xs: "2.5rem", sm: "3.5rem", md: "4rem" },
-                  lineHeight: 1.2
-                }}>
+                <GlowingText
+                  variant="h1"
+                  sx={{
+                    mb: 3,
+                    fontWeight: 800,
+                    fontSize: { xs: "2.5rem", sm: "3.5rem", md: "4rem" },
+                    lineHeight: 1.2,
+                  }}
+                >
                   Write, Share, Connect
                 </GlowingText>
-                <Typography variant="h5" sx={{ 
-                  color: "rgba(255,255,255,0.8)",
-                  mb: 4,
-                  maxWidth: "600px",
-                  lineHeight: 1.6
-                }}>
-                  Your words have the power to inspire, inform, and transform. Join our community of passionate bloggers and let your voice be heard.
+                <Typography
+                  variant="h5"
+                  sx={{
+                    color: "rgba(255,255,255,0.8)",
+                    mb: 4,
+                    maxWidth: "600px",
+                    lineHeight: 1.6,
+                  }}
+                >
+                  Your words have the power to inspire, inform, and transform.
+                  Join our community of passionate bloggers and let your voice
+                  be heard.
                 </Typography>
                 <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
                   <HeroButton
@@ -505,7 +520,7 @@ const Home = () => {
                       },
                     }}
                     onClick={() => {
-                      postsRef.current?.scrollIntoView({ behavior: 'smooth' });
+                      postsRef.current?.scrollIntoView({ behavior: "smooth" });
                     }}
                   >
                     Explore
@@ -514,29 +529,32 @@ const Home = () => {
               </Box>
             </Grid>
             <Grid item xs={12} md={6}>
-              <Box sx={{ 
-                position: "relative",
-                "&::before": {
-                  content: '""',
-                  position: "absolute",
-                  top: "50%",
-                  left: "50%",
-                  transform: "translate(-50%, -50%)",
-                  width: "140%",
-                  height: "140%",
-                  background: "radial-gradient(circle, rgba(186,230,253,0.5) 0%, rgba(147,197,253,0.3) 60%, rgba(0,0,0,0) 100%)",
-                  filter: "blur(80px)",
-                  zIndex: 0,
-                  animation: "breathe 10s ease-in-out infinite",
-                  mixBlendMode: "soft-light",
-                },
-              }}>
-                <FloatingImage 
-                  src="https://images.unsplash.com/photo-1499750310107-5fef28a66643?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2940&q=80" 
+              <Box
+                sx={{
+                  position: "relative",
+                  "&::before": {
+                    content: '""',
+                    position: "absolute",
+                    top: "50%",
+                    left: "50%",
+                    transform: "translate(-50%, -50%)",
+                    width: "140%",
+                    height: "140%",
+                    background:
+                      "radial-gradient(circle, rgba(186,230,253,0.5) 0%, rgba(147,197,253,0.3) 60%, rgba(0,0,0,0) 100%)",
+                    filter: "blur(80px)",
+                    zIndex: 0,
+                    animation: "breathe 10s ease-in-out infinite",
+                    mixBlendMode: "soft-light",
+                  },
+                }}
+              >
+                <FloatingImage
+                  src="https://images.unsplash.com/photo-1499750310107-5fef28a66643?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2940&q=80"
                   alt="Person Writing in Notebook"
                   loading="lazy"
-                  sx={{ 
-                    maxWidth: "100%", 
+                  sx={{
+                    maxWidth: "100%",
                     height: "auto",
                     transform: "scale(1)",
                     transition: "transform 0.5s ease",
@@ -544,7 +562,7 @@ const Home = () => {
                     filter: "drop-shadow(0 20px 30px rgba(14,165,233,0.3))",
                     "&:hover": {
                       transform: "scale(1.05)",
-                    }
+                    },
                   }}
                 />
               </Box>
@@ -669,12 +687,17 @@ const Home = () => {
                                     sx={{ mb: 3 }}
                                   >
                                     {featuredPost.description.length > 150
-                                      ? `${featuredPost.description.substring(0, 150)}...`
+                                      ? `${featuredPost.description.substring(
+                                          0,
+                                          150
+                                        )}...`
                                       : featuredPost.description}
                                   </Typography>
                                   <Button
                                     variant="outlined"
-                                    onClick={() => navigate(`/details/${featuredPost._id}`)}
+                                    onClick={() =>
+                                      navigate(`/details/${featuredPost._id}`)
+                                    }
                                     sx={{
                                       borderRadius: 8,
                                       textTransform: "none",
@@ -714,10 +737,15 @@ const Home = () => {
                     <ScrollAnimation direction="up" delay={0.2}>
                       <FeatureCard>
                         <IconWrapper className="icon-wrapper">
-                          <TrendingUpIcon sx={{ 
-                            fontSize: 32, 
-                            color: theme => theme.palette.mode === 'dark' ? 'rgba(59, 130, 246, 0.9)' : 'rgba(14, 165, 233, 0.9)' 
-                          }} />
+                          <TrendingUpIcon
+                            sx={{
+                              fontSize: 32,
+                              color: (theme) =>
+                                theme.palette.mode === "dark"
+                                  ? "rgba(59, 130, 246, 0.9)"
+                                  : "rgba(14, 165, 233, 0.9)",
+                            }}
+                          />
                         </IconWrapper>
                         <Typography
                           variant="h6"
@@ -736,10 +764,15 @@ const Home = () => {
                     <ScrollAnimation direction="up" delay={0.4}>
                       <FeatureCard>
                         <IconWrapper className="icon-wrapper">
-                          <WhatshotIcon sx={{ 
-                            fontSize: 32, 
-                            color: theme => theme.palette.mode === 'dark' ? 'rgba(239, 68, 68, 0.9)' : 'rgba(220, 38, 38, 0.9)' 
-                          }} />
+                          <WhatshotIcon
+                            sx={{
+                              fontSize: 32,
+                              color: (theme) =>
+                                theme.palette.mode === "dark"
+                                  ? "rgba(239, 68, 68, 0.9)"
+                                  : "rgba(220, 38, 38, 0.9)",
+                            }}
+                          />
                         </IconWrapper>
                         <Typography
                           variant="h6"
@@ -759,10 +792,15 @@ const Home = () => {
                     <ScrollAnimation direction="up" delay={0.6}>
                       <FeatureCard>
                         <IconWrapper className="icon-wrapper">
-                          <AutoAwesomeIcon sx={{ 
-                            fontSize: 32, 
-                            color: theme => theme.palette.mode === 'dark' ? 'rgba(234, 179, 8, 0.9)' : 'rgba(202, 138, 4, 0.9)' 
-                          }} />
+                          <AutoAwesomeIcon
+                            sx={{
+                              fontSize: 32,
+                              color: (theme) =>
+                                theme.palette.mode === "dark"
+                                  ? "rgba(234, 179, 8, 0.9)"
+                                  : "rgba(202, 138, 4, 0.9)",
+                            }}
+                          />
                         </IconWrapper>
                         <Typography
                           variant="h6"
@@ -857,12 +895,17 @@ const Home = () => {
                                   sx={{ mb: 3 }}
                                 >
                                   {featuredPost.description.length > 150
-                                    ? `${featuredPost.description.substring(0, 150)}...`
+                                    ? `${featuredPost.description.substring(
+                                        0,
+                                        150
+                                      )}...`
                                     : featuredPost.description}
                                 </Typography>
                                 <Button
                                   variant="outlined"
-                                  onClick={() => navigate(`/details/${featuredPost._id}`)}
+                                  onClick={() =>
+                                    navigate(`/details/${featuredPost._id}`)
+                                  }
                                   sx={{
                                     borderRadius: 8,
                                     textTransform: "none",
@@ -902,15 +945,17 @@ const Home = () => {
                   <ScrollAnimation direction="up" delay={0.2}>
                     <FeatureCard>
                       <IconWrapper className="icon-wrapper">
-                        <TrendingUpIcon sx={{ 
-                          fontSize: 32, 
-                          color: theme => theme.palette.mode === 'dark' ? 'rgba(59, 130, 246, 0.9)' : 'rgba(14, 165, 233, 0.9)' 
-                        }} />
+                        <TrendingUpIcon
+                          sx={{
+                            fontSize: 32,
+                            color: (theme) =>
+                              theme.palette.mode === "dark"
+                                ? "rgba(59, 130, 246, 0.9)"
+                                : "rgba(14, 165, 233, 0.9)",
+                          }}
+                        />
                       </IconWrapper>
-                      <Typography
-                        variant="h6"
-                        sx={{ mb: 1, fontWeight: 600 }}
-                      >
+                      <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
                         Trending Topics
                       </Typography>
                       <Typography variant="body2" color="text.secondary">
@@ -924,21 +969,22 @@ const Home = () => {
                   <ScrollAnimation direction="up" delay={0.4}>
                     <FeatureCard>
                       <IconWrapper className="icon-wrapper">
-                        <WhatshotIcon sx={{ 
-                          fontSize: 32, 
-                          color: theme => theme.palette.mode === 'dark' ? 'rgba(239, 68, 68, 0.9)' : 'rgba(220, 38, 38, 0.9)' 
-                        }} />
+                        <WhatshotIcon
+                          sx={{
+                            fontSize: 32,
+                            color: (theme) =>
+                              theme.palette.mode === "dark"
+                                ? "rgba(239, 68, 68, 0.9)"
+                                : "rgba(220, 38, 38, 0.9)",
+                          }}
+                        />
                       </IconWrapper>
-                      <Typography
-                        variant="h6"
-                        sx={{ mb: 1, fontWeight: 600 }}
-                      >
+                      <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
                         Hot Discussions
                       </Typography>
                       <Typography variant="body2" color="text.secondary">
                         Join vibrant conversations about health topics that
-                        matter to you and connect with like-minded
-                        individuals.
+                        matter to you and connect with like-minded individuals.
                       </Typography>
                     </FeatureCard>
                   </ScrollAnimation>
@@ -947,20 +993,22 @@ const Home = () => {
                   <ScrollAnimation direction="up" delay={0.6}>
                     <FeatureCard>
                       <IconWrapper className="icon-wrapper">
-                        <AutoAwesomeIcon sx={{ 
-                          fontSize: 32, 
-                          color: theme => theme.palette.mode === 'dark' ? 'rgba(234, 179, 8, 0.9)' : 'rgba(202, 138, 4, 0.9)' 
-                        }} />
+                        <AutoAwesomeIcon
+                          sx={{
+                            fontSize: 32,
+                            color: (theme) =>
+                              theme.palette.mode === "dark"
+                                ? "rgba(234, 179, 8, 0.9)"
+                                : "rgba(202, 138, 4, 0.9)",
+                          }}
+                        />
                       </IconWrapper>
-                      <Typography
-                        variant="h6"
-                        sx={{ mb: 1, fontWeight: 600 }}
-                      >
+                      <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
                         Expert Insights
                       </Typography>
                       <Typography variant="body2" color="text.secondary">
-                        Learn from healthcare professionals and thought
-                        leaders sharing their knowledge and experiences.
+                        Learn from healthcare professionals and thought leaders
+                        sharing their knowledge and experiences.
                       </Typography>
                     </FeatureCard>
                   </ScrollAnimation>
@@ -987,10 +1035,11 @@ const Home = () => {
 
       <ParallaxSection
         style={{
-          background: 'linear-gradient(45deg, #7dd3fc 0%, #0ea5e9 50%, #3b82f6 100%)',
-          padding: '48px',
-          textAlign: 'center',
-          color: '#fff',
+          background:
+            "linear-gradient(45deg, #7dd3fc 0%, #0ea5e9 50%, #3b82f6 100%)",
+          padding: "48px",
+          textAlign: "center",
+          color: "#fff",
         }}
       >
         <ScrollAnimation direction="up" delay={0.2}>
@@ -999,7 +1048,7 @@ const Home = () => {
             sx={{
               fontWeight: 800,
               marginBottom: 2,
-              color: 'inherit',
+              color: "inherit",
             }}
           >
             {/* Welcome to PatientZero */}
@@ -1007,42 +1056,46 @@ const Home = () => {
           <Typography
             variant="h5"
             sx={{
-              maxWidth: '800px',
-              margin: '0 auto 2rem',
-              color: 'rgba(255,255,255,0.9)',
+              maxWidth: "800px",
+              margin: "0 auto 2rem",
+              color: "rgba(255,255,255,0.9)",
               lineHeight: 1.6,
             }}
           >
-            A collaborative platform designed to empower patients and healthcare professionals. Share health stories, connect with others on their recovery journeys, and access valuable information from medical experts.
+            A collaborative platform designed to empower patients and healthcare
+            professionals. Share health stories, connect with others on their
+            recovery journeys, and access valuable information from medical
+            experts.
           </Typography>
           <Typography
             variant="body1"
             sx={{
-              maxWidth: '700px',
-              margin: '0 auto 3rem',
-              color: 'rgba(255,255,255,0.8)',
-              fontSize: '1.1rem',
+              maxWidth: "700px",
+              margin: "0 auto 3rem",
+              color: "rgba(255,255,255,0.8)",
+              fontSize: "1.1rem",
             }}
           >
-            Dive into our community-driven content and join conversations that bring meaningful support to health experiences.
+            Dive into our community-driven content and join conversations that
+            bring meaningful support to health experiences.
           </Typography>
           <Button
             variant="contained"
             component={Link}
             to="/create/post"
             sx={{
-              backgroundColor: 'rgba(255,255,255,0.15)',
-              backdropFilter: 'blur(10px)',
-              border: '1px solid rgba(255,255,255,0.2)',
-              color: '#fff',
-              padding: '12px 32px',
-              fontSize: '1.1rem',
+              backgroundColor: "rgba(255,255,255,0.15)",
+              backdropFilter: "blur(10px)",
+              border: "1px solid rgba(255,255,255,0.2)",
+              color: "#fff",
+              padding: "12px 32px",
+              fontSize: "1.1rem",
               fontWeight: 600,
-              textTransform: 'none',
-              '&:hover': {
-                backgroundColor: 'rgba(255,255,255,0.25)',
-                transform: 'translateY(-3px)',
-                boxShadow: '0 20px 40px rgba(14,165,233,0.3)',
+              textTransform: "none",
+              "&:hover": {
+                backgroundColor: "rgba(255,255,255,0.25)",
+                transform: "translateY(-3px)",
+                boxShadow: "0 20px 40px rgba(14,165,233,0.3)",
               },
             }}
           >
